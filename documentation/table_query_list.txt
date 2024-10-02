@@ -1,0 +1,59 @@
+MYSQL
+
+#For Creating users table
+- CREATE TABLE users(
+		id INT(11) AUTO_INCREMENT, 
+		name VARCHAR(50) NOT NULL,
+		username VARCHAR(255) NOT NULL,
+		password_hashed TEXT NOT NULL,
+		email VARCHAR(255) NOT NULL,
+		active ENUM('0','1') DEFAULT '1',
+		created_at DATETIME DEFAULT NOW(),
+		updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
+		PRIMARY KEY (id),
+		UNIQUE KEY (email)
+	);
+	
+#For chats table
+- CREATE TABLE chatgroups(
+		id INT(11) AUTO_INCREMENT, 
+		chat_id VARCHAR(50) NOT NULL,
+		chat_name VARCHAR(255) NOT NULL,
+		user_id INT(11) NOT NULL,
+		published ENUM('0','1') DEFAULT '1',
+		created_at DATETIME DEFAULT NOW(),
+		updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
+		PRIMARY KEY (id),
+		FOREIGN KEY (user_id) REFERENCES users(id),
+		UNIQUE KEY (chat_id)
+	);
+	
+#For chats_users table
+- CREATE TABLE chats_users(
+		id INT(11) AUTO_INCREMENT, 
+		chat_id VARCHAR(50) NOT NULL,
+		user_id INT(11) NOT NULL,
+		active ENUM('0','1') DEFAULT '1',
+		created_at DATETIME DEFAULT NOW(),
+		updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
+		PRIMARY KEY (id),
+		FOREIGN KEY (user_id) REFERENCES users(id),
+		FOREIGN KEY (chat_id) REFERENCES chatgroups(chat_id),
+		UNIQUE (user_id, chat_id)
+	);
+	
+#For users_chats_messages
+- CREATE TABLE users_chats_messages(
+		id INT(11) AUTO_INCREMENT,
+		message_id VARCHAR(50) NOT NULL, 
+		chat_id VARCHAR(50) NOT NULL,
+		user_id INT(11) NOT NULL,
+		published ENUM('0','1') DEFAULT '1', 
+		created_at DATETIME DEFAULT NOW(),
+		updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
+		PRIMARY KEY (id),
+		FOREIGN KEY (user_id) REFERENCES users(id),
+		FOREIGN KEY (chat_id) REFERENCES chatgroups(chat_id),
+		UNIQUE KEY (message_id)
+	);
+	

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Groups</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        
+        <h2>Chat Groups</h2>
+        <!-- Button to open the modal -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createGroupModal">
+            Create New Group
+        </button></br>
+        <!-- List of previous chat groups -->
+        <ul class="list-group mb-4 p-3">
+            
+            <% groups.forEach(function(group) { %>
+                <li class="list-group-item">
+                    <strong><%= group.chat_name %></strong>
+                </li>
+            <% })  %>
+        </ul>
+
+        
+
+        <!-- Modal for creating a new group -->
+        <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createGroupModalLabel">Create New Chat Group</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="createGroupForm">
+                            <div class="form-group">
+                                <label for="groupName">Group Name</label>
+                                <input type="text" name="groupName" id="groupName" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="users">Users (comma-separated)</label>
+                                <input type="text" name="users" id="users" class="form-control" >
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Group</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include jQuery and Bootstrap JS -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <script>
+        // Handle the form submission via AJAX
+        $('#createGroupForm').on('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            const groupName = $('#groupName').val();
+            const users = $('#users').val(); //.split(',').map(user => user.trim()); // Split and trim user inputs
+
+            jQuery.ajax({
+                type: 'POST',
+                url: '/chat/create', // URL for creating the group
+                data: {
+                    groupName: groupName,
+                    users: users
+                },
+                success: function(response) {
+                    console.log(response);
+                    if (response.status == 200) {
+                        // Optionally, you can update the group list or close the modal
+                        location.reload(); // Reload the page to see the updated group list
+                    }else{
+                        alert(response.msg);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error creating group: ' + xhr.responseText);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
