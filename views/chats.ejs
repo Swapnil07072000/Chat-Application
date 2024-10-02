@@ -18,8 +18,9 @@
         <ul class="list-group mb-4 p-3">
             
             <% groups.forEach(function(group) { %>
+                <% let chat_url = "/user/chats/"+group.chat_id %>
                 <li class="list-group-item">
-                    <strong><%= group.chat_name %></strong>
+                    <a href="<%= chat_url %>" ><%= group.chat_name %></a>
                 </li>
             <% })  %>
         </ul>
@@ -41,10 +42,6 @@
                             <div class="form-group">
                                 <label for="groupName">Group Name</label>
                                 <input type="text" name="groupName" id="groupName" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="users">Users (comma-separated)</label>
-                                <input type="text" name="users" id="users" class="form-control" >
                             </div>
                             <button type="submit" class="btn btn-primary">Create Group</button>
                         </form>

@@ -1,3 +1,4 @@
+// const users = require("../models/Users");
 const chatgroups = require('../models/ChatGroups');
 const chatsgroupusers = require('../models/ChatsGroupUsers');
 const userschatsmessages = require('../models/UsersChatsMessages');
@@ -18,7 +19,7 @@ class Chats{
         const user_id = user.id;
         // const selfCreatedGroups = await chatgroups.findAll({where: {user_id}});
         // console.log(chatsgroupusers);
-        const all_groups_list = await chatsgroupusers.getAllGroupForUser(user_id);
+        const all_groups_list = await chatgroups.getAllGroupForUser(user_id);
         // console.log(all_groups_list);
         res.render("chats", {groups: all_groups_list}); 
     }
@@ -53,6 +54,24 @@ class Chats{
         
         return res.json({"status": 200, "msg": "Group created successfully"});
 
+    }
+
+    //Chat records
+    async getChatById(req, res){
+        const {chat_id} = req.params;
+        // console.log(chat_id);
+        const user = req.session.user;
+        const user_id = user.id;
+        try{
+            const is_valid = await chatgroups.isValidChatGroup(chat_id);
+            if(!is_valid){
+                return res.json({"error":"No such chat group exists"});    
+            }
+            console.log(is_valid);
+            // const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
+        }catch(error){
+            return res.json({"error":"Error faced while fetching the chats"});
+        }
     }
 
     generateDatabaseDateTime = (date = null) => {

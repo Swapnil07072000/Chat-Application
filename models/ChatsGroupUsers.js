@@ -3,16 +3,16 @@ const sequelize = require('../config/db'); // Adjust the path as needed
 
 class ChatsGroupUsers extends Model {
   
-
-  static async getAllGroupForUser(user_id){
+  static async getChatRecords(user_id, chat_id){
     let result = "";
     try{
       result = await sequelize.query(
         `
-          SELECT g.chat_name FROM chat_groups AS g
-          JOIN chats_group_users AS cu
+          SELECT g.chat_name FROM chats_group_users AS cu 
+          JOIN chat_groups AS g
           ON(cu.chat_id = g.chat_id)
           WHERE cu.user_id = :user_id
+          AND g.published = 1 AND cu.active = 1
         `,
         {
           replacements: {user_id},
@@ -23,10 +23,9 @@ class ChatsGroupUsers extends Model {
       
     }catch(error){
       return error;
-    }
-    return result;
-    
+    } 
   }
+  
 
 }
 

@@ -1,8 +1,52 @@
-const { DataTypes, Model } = require('sequelize');
+const { DataTypes, Model, Sequelize } = require('sequelize');
 const sequelize = require('../config/db');
 
 class ChatGroups extends Model {
-  //
+  static async getAllGroupForUser(user_id){
+    let result = "";
+    try{
+      result = await sequelize.query(
+        `
+          SELECT g.chat_id, g.chat_name FROM chat_groups AS g
+          JOIN chats_group_users AS cu
+          ON(cu.chat_id = g.chat_id)
+          WHERE cu.user_id = :user_id
+          AND g.published = '1' 
+          AND cu.active = '1'
+        `,
+        {
+          replacements: {user_id},
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );  
+      // console.log(result);
+      
+    }catch(error){
+      return error;
+    }
+    return result;
+    
+  }
+
+  static async isValidChatGroup(chat_id){
+    let result = "";
+    try{
+      result = await sequelize.query(
+        `
+          SELECT g.id FROM chat_groups AS g
+          WHERE g.chat_id = :chat_id
+          AND g.published = 1
+        `,
+        {
+          replacements: {chat_id},
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );
+    }catch(error){
+      return error;
+    }
+    return (result?true:false);
+  }
 }
 
 ChatGroups.init(

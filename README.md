@@ -24,3 +24,8 @@
 ├── package.json       # Project metadata and dependencies
 └── .env               # Environment variables (optional)
 
+
+Future Me:
+1. Users will select which group to join.
+2. If the group created by same user he will be already present and join button will not display
+
