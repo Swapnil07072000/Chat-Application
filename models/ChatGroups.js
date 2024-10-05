@@ -24,7 +24,11 @@ class ChatGroups extends Model {
     }catch(error){
       return error;
     }
-    return result;
+    var chat_id_list = [];
+    result.forEach(element => {
+      chat_id_list.push(element.chat_id)
+    });
+    return [chat_id_list, result];
     
   }
 
@@ -46,6 +50,44 @@ class ChatGroups extends Model {
       return error;
     }
     return (result?true:false);
+  }
+
+  static async getAllGroup(chat_id_list){
+    let result = "";
+    try{
+      let query = "";
+      if(!chat_id_list){
+        query = `
+          SELECT g.chat_id, g.chat_name FROM chat_groups AS g
+          LEFT JOIN chats_group_users AS cu
+          ON(cu.chat_id = g.chat_id)
+          AND g.published = '1' 
+          AND cu.active = '1'
+        ` ;
+      }else{
+        const chat_ids = "'"+chat_id_list.join("','")+"'";
+        query = `
+          SELECT g.chat_id, g.chat_name FROM chat_groups AS g
+          LEFT JOIN chats_group_users AS cu
+          ON(cu.chat_id = g.chat_id AND cu.active = '1')
+          WHERE g.chat_id NOT IN (${chat_ids})
+          AND g.published = '1' 
+          
+        ` ;
+      }
+      
+      result = await sequelize.query(query,
+        {
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );  
+      // console.log(result);
+      
+    }catch(error){
+      return error;
+    }
+    return result;
+    
   }
 }
 

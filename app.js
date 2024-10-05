@@ -1,15 +1,35 @@
 require('dotenv').config();
 const express = require("express");
 const session = require('express-session');
+const http = require("http");
+const {Server} = require("socket.io");
 const bodyParser = require("body-parser");
 const RedisStore = require("connect-redis").default;
 const redis = require('redis');
+const path = require("path");
 
 const router = require("./routes/routes");
 const sequelize = require('./config/db');
+const ChatSocket = require('./config/chatSocket');
 
 
 const app = express();
+//Socket-io Settings
+const server = http.createServer(app);
+const io = new Server(server);
+// console.log(io);
+console.log("CDD");
+new ChatSocket(io);
+
+// Sync models and create tables when the app starts
+sequelize.sync({ force: false }) // `force: false` ensures existing tables are not dropped
+    .then(() => {
+        console.log('Tables synchronized successfully.');
+    })
+    .catch(err => {
+        console.error('Error synchronizing tables:', err);
+    });
+
 //Redis settings
 const redis_username = process.env.REDIS_USERNAME;
 const redis_password = process.env.REDIS_PASSWORD;
@@ -37,19 +57,17 @@ app.use(session({
     } 
 }));
 
+
+
+
 app.set('view engine', 'ejs');
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Sync models and create tables when the app starts
-sequelize.sync({ force: false }) // `force: false` ensures existing tables are not dropped
-    .then(() => {
-        console.log('Tables synchronized successfully.');
-    })
-    .catch(err => {
-        console.error('Error synchronizing tables:', err);
-    });
+
+
 
 app.use("/", router);
 
@@ -57,6 +75,12 @@ app.use("/", router);
 
 const port = process.env.PORT || 9001;
 
-app.listen(port, ()=>{
+/* Commented as server should listen to socket.io server */
+// app.listen(port, ()=>{
+//     console.log("App running on port "+port);
+// })
+/* End */
+
+server.listen(port, ()=>{
     console.log("App running on port "+port);
 })

@@ -19,9 +19,11 @@ class Chats{
         const user_id = user.id;
         // const selfCreatedGroups = await chatgroups.findAll({where: {user_id}});
         // console.log(chatsgroupusers);
-        const all_groups_list = await chatgroups.getAllGroupForUser(user_id);
-        // console.log(all_groups_list);
-        res.render("chats", {groups: all_groups_list}); 
+        const [chat_id_list, all_groups_list] = await chatgroups.getAllGroupForUser(user_id);
+        // console.log(all_groups_list, chat_id_list);
+        const other_groups_list = await chatgroups.getAllGroup(chat_id_list);
+        // console.log(other_groups_list);
+        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list}); 
     }
 
     //Group Creation
@@ -60,6 +62,7 @@ class Chats{
     async getChatById(req, res){
         const {chat_id} = req.params;
         // console.log(chat_id);
+        // console.log("CS");
         const user = req.session.user;
         const user_id = user.id;
         try{
@@ -67,8 +70,30 @@ class Chats{
             if(!is_valid){
                 return res.json({"error":"No such chat group exists"});    
             }
-            console.log(is_valid);
+            const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
+            // console.log(is_valid);
+            // console.log(chat_records[0].chat_name);
+            // console.log(chat_records.chat_name);
+            res.render("chat-page", {"chat_group_name":chat_records[0].chat_name, "user": user});
             // const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
+        }catch(error){
+            return res.json({"error":"Error faced while fetching the chats"});
+        }
+    }
+
+    async joinChatGroup(req, res){
+        const {chat_id} = req.params;
+        // console.log(chat_id);
+        const user = req.session.user;
+        const user_id = user.id;
+        try{
+            const is_valid = await chatgroups.isValidChatGroup(chat_id);
+            if(!is_valid){
+                return res.json({"error":"No such chat group exists"});    
+            }
+            const join_user = await chatsgroupusers.create({chat_id, user_id});
+            // res.redirect("chats");
+            res.redirect("/user/chats");
         }catch(error){
             return res.json({"error":"Error faced while fetching the chats"});
         }

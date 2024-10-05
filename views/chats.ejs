@@ -15,6 +15,7 @@
             Create New Group
         </button></br>
         <!-- List of previous chat groups -->
+        <p>Your Groups</p>
         <ul class="list-group mb-4 p-3">
             
             <% groups.forEach(function(group) { %>
@@ -24,7 +25,21 @@
                 </li>
             <% })  %>
         </ul>
-
+        <p>Other Groups</p>
+        <ul class="list-group "></ul>
+            <% if(other_groups){ %>
+                <% other_groups.forEach(function(othergroup) { %>
+                    <% 
+                        let chat_url = "/user/chats/"+othergroup.chat_id;
+                        let join_url = "/user/chatjoin/"+othergroup.chat_id; 
+                    %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="<%= chat_url %>" ><%= othergroup.chat_name %></a>
+                        <a class="btn btn-primary" href="<%= join_url %>">Join Chat</a>
+                    </li>
+                <% })  %>
+            <% } %>
+        </ul>
         
 
         <!-- Modal for creating a new group -->

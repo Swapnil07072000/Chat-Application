@@ -8,19 +8,17 @@ class ChatsGroupUsers extends Model {
     try{
       result = await sequelize.query(
         `
-          SELECT g.chat_name FROM chats_group_users AS cu 
-          JOIN chat_groups AS g
-          ON(cu.chat_id = g.chat_id)
-          WHERE cu.user_id = :user_id
-          AND g.published = 1 AND cu.active = 1
+          SELECT g.chat_name FROM chat_groups AS g 
+          WHERE g.chat_id = :chat_id
+          AND g.published = '1'
         `,
         {
-          replacements: {user_id},
+          replacements: {chat_id},
           type: Sequelize.QueryTypes.SELECT,
         }
       );  
       // console.log(result);
-      
+      return result;
     }catch(error){
       return error;
     } 

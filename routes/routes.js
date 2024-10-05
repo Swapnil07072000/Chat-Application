@@ -25,5 +25,6 @@ router.get("/user/chats", authenticatemiddleware.handle.bind(authenticatemiddlew
 router.post("/chat/create", authenticatemiddleware.handle.bind(authenticatemiddleware) , chats.createGroup);
 
 router.get("/user/chats/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.getChatById);
+router.get("/user/chatjoin/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.joinChatGroup);
 
 module.exports = router;

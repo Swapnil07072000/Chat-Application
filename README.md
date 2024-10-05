@@ -26,6 +26,10 @@
 
 
 Future Me:
-1. Users will select which group to join.
-2. If the group created by same user he will be already present and join button will not display
+Priority: 
+    1. Need to check the socket.io connection as it is creating problem -> Done 
+    - I have checked and fixed as it was the server listen issue 
+    2. Need to fix the disconnection for new user comes in group -> Pending
+1. Users will select which group to join. -> Done
+2. If the group created by same user he will be already present and join button will not display-> Done
 
