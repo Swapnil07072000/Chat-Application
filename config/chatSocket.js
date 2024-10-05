@@ -1,5 +1,7 @@
 const RedisClient = require("../config/redis");
 // await new RedisClient();
+const users = require("../models/Users");
+
 
 
 const userschatsmessages = require("../models/UsersChatsMessages");
@@ -53,7 +55,13 @@ class ChatSocket {
           // console.log(redisClient);
           try{
             await this.redisClient.publish("chat_messages", JSON.stringify(msg));
-            this.io.to(msg.roomID).emit('chat message', msg.message);
+            const user_id = msg.user_id;
+            // console.log(user_id);
+            const user = await users.findOne({where: {id: user_id}}); 
+            // console.log(msg);
+            msg.chat_of_user = user.username;
+            this.io.to(msg.roomID).emit('chat message', msg);
+            // getChatGroupData(socket, msg.roomID, msg.user_id);
           }catch(error){
             console.log("Error2: "+error);
           }
@@ -73,25 +81,24 @@ class ChatSocket {
       })
     }
 
-    getChatGroupData(socket){
-      socket.on("getChatGroupMessages", async(chat_cred)=>{
-        // console.log(chat_cred);
-        const chat_id = chat_cred.chat_id;
-        const chat_records = await userschatsmessages.findAll({where: {chat_id: chat_id, published: '1'} });
-        // console.log(chat_records);
-        var processed_chat_records = [];
-        chat_records.forEach((per_record)=>{
-          // console.log(per_record);
-          let ind_record = {};
-          ind_record.chat_id = per_record.chat_id;
-          ind_record.message = per_record.message;
-          ind_record.user_id = per_record.user_id;
-          ind_record.self = (per_record.user_id == chat_cred.user_id)?true:false;
-          processed_chat_records.push(ind_record);
-        });
-        console.log(processed_chat_records);
-      })
+    async getChatGroupData(socket, param_chat_id=null, param_user_id=null){
+      if(!param_chat_id && !param_user_id){
+        socket.on("getChatGroupMessages", async(chat_cred)=>{
+          // console.log(chat_cred);
+          const chat_id = chat_cred.chat_id;
+          const user_id = chat_cred.user_id;
+          const processed_chat_records = await userschatsmessages.getChatMessagesFromChatID(chat_id, user_id);
+          // console.log(processed_chat_records);
+          socket.emit("messagesOfChatGroup", processed_chat_records);
+        })
+      }else{
+        const processed_chat_records = await userschatsmessages.getChatMessagesFromChatID(param_chat_id, param_user_id);
+        socket.emit("messagesOfChatGroup", processed_chat_records);
+      }
+      
     }
+
+    
   }
   
   module.exports = ChatSocket;

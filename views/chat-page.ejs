@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,18 +11,21 @@
             display: flex;
             height: 100vh;
         }
+
         .sidebar {
             width: 25%;
             background-color: #f8f9fa;
             padding: 20px;
             border-right: 1px solid #ddd;
         }
+
         .chat-box {
             width: 75%;
             padding: 20px;
             display: flex;
             flex-direction: column;
         }
+
         .message-list {
             flex-grow: 1;
             overflow-y: auto;
@@ -31,18 +33,29 @@
             padding-bottom: 10px;
             margin-bottom: 10px;
         }
+
         .message {
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column; /* Stack the username and message vertically */
+            margin: 5px 0; /* Add some spacing between messages */
+            padding: 10px; /* Add padding for a better appearance */
+            max-width: 80%; /* Limit the width */
+            border-radius: 8px; /* Add rounded corners */
         }
-        .message.user {
-            background-color: #d1e7dd;
-            align-self: flex-end;
-        }
+
         .message.other {
-            background-color: #f8d7da;
-            align-self: flex-start;
+            align-self: flex-end; /* Align to the right */
+            background-color: #f8d7da; /* Optional: background color for other messages */
+        }
+
+        .message.user {
+            align-self: flex-start; /* Align to the left for user messages */
+            background-color: transparent; /* No background color for user's messages */
+        }
+
+        .username {
+            font-weight: bold;
+            margin: 5px 0; /* Space between username and message */
         }
     </style>
 </head>
@@ -52,9 +65,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <!-- Button to open the modal -->
-        <a href="/user/chats" class="btn btn-primary">
-            Back
-        </a>
+        <a href="/user/chats" class="btn btn-primary">Back</a>
         <h4>Group Name: <span id="group-name"><%= chat_group_name %></span></h4>
         <h6>Welcome, <span id="username"><%= user.name %></span></h6>
     </div>
@@ -62,10 +73,6 @@
     <!-- Chat Box -->
     <div class="chat-box">
         <div class="message-list" id="message-list">
-            <!-- Messages will be appended here -->
-            <div class="message other">Hello, how are you?</div>
-            <div class="message user">I am fine, thanks!</div>
-            <!-- New messages will be loaded dynamically -->
         </div>
 
         <!-- Message Input -->
@@ -77,46 +84,49 @@
 </div>
 
 <!-- Optional JavaScript -->
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    // Simulated data (you can replace with actual server data)
-    // const groupName = "Group A";
-    // const username = "User123";
     var url_array = location.href.split('/');
     const chat_id = url_array[url_array.length - 1];
     const user_id = <%= user.id %>;
+    const messageList = document.getElementById('message-list');
     document.addEventListener('DOMContentLoaded', (event) => {
         const socket = io();
         socket.emit("joinChatGroup", chat_id);
+        
         /* get and set the previous chat records */
         var user_chat_credentials = {};
         user_chat_credentials.chat_id = chat_id;
         user_chat_credentials.user_id = user_id;
         socket.emit("getChatGroupMessages", user_chat_credentials);
+        var messages = "";
         socket.on("messagesOfChatGroup", (data)=>{
             console.log(data);
+            messages = data;
+            // Display Messages
+            appendMessages(messages);
         });
-        /* End */
-        const messages = [
-            { user: 'User123', message: 'Hi there!', self: true },
-            { user: 'User456', message: 'Hello!', self: false },
-            { user: 'User123', message: 'How’s it going?', self: true }
-        ];
+        
+        function appendMessages(messages){
+            messages.forEach(msg => {
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other');
+                const username = document.createElement('span');
+                username.classList.add('username'); // You can style this class in CSS
+                // username.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other');
+                username.innerText = msg.chat_of_user; // Assuming message.username contains the username
+                const messageContent = document.createElement('div');
+                // messageContent.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other');
+                messageContent.innerText = msg.message;
 
-        // Display Group Name and Username
-        // document.getElementById('group-name').innerText = groupName;
-        // document.getElementById('username').innerText = username;
+                // Append the username and message to the newMessage div
+                newMessage.appendChild(username);
+                newMessage.appendChild(messageContent);
 
-        // Display Messages
-        const messageList = document.getElementById('message-list');
-        messages.forEach(msg => {
-            const msgElement = document.createElement('div');
-            msgElement.classList.add('message', msg.self ? 'user' : 'other');
-            msgElement.innerText = msg.message;
-            messageList.appendChild(msgElement);
-        });
+                // Add the message to the message list
+                messageList.appendChild(newMessage);
+            });
+        }
 
         // Submit Message (Handle new message input)
         document.getElementById('chat-form').addEventListener('submit', function(e) {
@@ -125,30 +135,35 @@
             const message = messageInput.value.trim();
 
             if (message) {
-                
-                // console.log(chat_id);
                 let msg_data = {};
                 msg_data.message = message;
                 msg_data.roomID = chat_id;
                 msg_data.user_id = user_id;
                 socket.emit('chat message', msg_data); // Send message to server
-                
 
                 // Clear input field
                 messageInput.value = '';
             }
         });
-        socket.on("chat message", (message)=>{
-            // console.log(message);
-            // Append the new message to the list
-            const newMessage = document.createElement('div');
-            newMessage.classList.add('message', 'user');
-            newMessage.innerText = message;
-            messageList.appendChild(newMessage);
 
+        socket.on("chat message", (message) => {
+            const newMessage = document.createElement('div');
+            newMessage.classList.add('message', (message.user_id === user_id) ? 'user' : 'other');
+            const username = document.createElement('span');
+            username.classList.add('username'); // You can style this class in CSS
+            username.innerText = message.chat_of_user; // Assuming message.username contains the username
+            const messageContent = document.createElement('div');
+            messageContent.innerText = message.message;
+
+            // Append the username and message to the newMessage div
+            newMessage.appendChild(username);
+            newMessage.appendChild(messageContent);
+
+            // Add the message to the message list
+            messageList.appendChild(newMessage);
             // Scroll to bottom of the chat
             messageList.scrollTop = messageList.scrollHeight;
-        })
+        });
     });
 </script>
 

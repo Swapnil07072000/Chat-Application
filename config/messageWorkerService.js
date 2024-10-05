@@ -1,7 +1,9 @@
 const RedisClient = require("../config/redis");
 // const redisInstance = new RedisClient();
 // const subscriber = redisInstance.getClient();
-const userschatsmessages = require('../models/UsersChatsMessages'); 
+const userschatsmessages = require('../models/UsersChatsMessages');
+const CryptoService = require("../config/encryptdecrypt");
+
 const { v4: uuidv4 } = require("uuid");
 
 class MessageWorker{
@@ -31,11 +33,14 @@ class MessageWorker{
                     // console.log(messageData.chat_id)
                     // Save the message to the database
                     const message_id = uuidv4();
+                    const cryptoInstance = new CryptoService();
+                    console.log(messageData.message);
+                    const encryptedText = cryptoInstance.encrypt(messageData.message);
                     await userschatsmessages.create({
                         message_id: message_id,
                         chat_id: messageData.roomID,
                         user_id: messageData.user_id,
-                        message: messageData.message,
+                        message: encryptedText,
                     });
                     // console.log("A");
                 } catch (error) {
