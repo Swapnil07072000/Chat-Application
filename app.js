@@ -5,12 +5,13 @@ const http = require("http");
 const {Server} = require("socket.io");
 const bodyParser = require("body-parser");
 const RedisStore = require("connect-redis").default;
-const redis = require('redis');
+// const redis = require('redis');
 const path = require("path");
 
 const router = require("./routes/routes");
 const sequelize = require('./config/db');
 const ChatSocket = require('./config/chatSocket');
+const RedisClient = require('./config/redis');
 
 
 const app = express();
@@ -18,7 +19,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 // console.log(io);
-console.log("CDD");
 new ChatSocket(io);
 
 // Sync models and create tables when the app starts
@@ -31,6 +31,8 @@ sequelize.sync({ force: false }) // `force: false` ensures existing tables are n
     });
 
 //Redis settings
+/* Moved to /config/redis.js */
+/*
 const redis_username = process.env.REDIS_USERNAME;
 const redis_password = process.env.REDIS_PASSWORD;
 const redis_host = process.env.REDIS_HOST;
@@ -45,6 +47,12 @@ redisClient.connect().then(()=>{
 redisClient.on("error", (err)=>{
     console.error("Redis error: "+error);
 })
+*/
+
+const redisInstance = new RedisClient();
+// redisInstance.connect();
+const redisClient = redisInstance.getClient();
+// console.log("A "+redisClient)
 // Configure session middleware
 app.use(session({
     store: new RedisStore({ client: redisClient }),

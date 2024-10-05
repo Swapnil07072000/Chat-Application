@@ -16,6 +16,9 @@ UsersChatsMessages.init(
       allowNull: false,
       unique: true, // Ensure unique constraint for message_id
     },
+    message: {
+      type: DataTypes.TEXT,
+    },
     chat_id: {
       type: DataTypes.STRING(50),
       allowNull: false,

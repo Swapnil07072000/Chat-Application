@@ -86,9 +86,19 @@
     // const username = "User123";
     var url_array = location.href.split('/');
     const chat_id = url_array[url_array.length - 1];
+    const user_id = <%= user.id %>;
     document.addEventListener('DOMContentLoaded', (event) => {
         const socket = io();
         socket.emit("joinChatGroup", chat_id);
+        /* get and set the previous chat records */
+        var user_chat_credentials = {};
+        user_chat_credentials.chat_id = chat_id;
+        user_chat_credentials.user_id = user_id;
+        socket.emit("getChatGroupMessages", user_chat_credentials);
+        socket.on("messagesOfChatGroup", (data)=>{
+            console.log(data);
+        });
+        /* End */
         const messages = [
             { user: 'User123', message: 'Hi there!', self: true },
             { user: 'User456', message: 'Hello!', self: false },
@@ -120,6 +130,7 @@
                 let msg_data = {};
                 msg_data.message = message;
                 msg_data.roomID = chat_id;
+                msg_data.user_id = user_id;
                 socket.emit('chat message', msg_data); // Send message to server
                 
 
