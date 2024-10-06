@@ -5,7 +5,7 @@ const assert = require('assert');
 class CryptoService {
     constructor() {
         this.algorithm = process.env.ENCRYPT_ALGO;
-        this.key = process.env.ENCRYPT_PUBLC_KEY;
+        this.key = process.env.ENCRYPT_PRIVATE_KEY;
     }
 
     encrypt(text) {

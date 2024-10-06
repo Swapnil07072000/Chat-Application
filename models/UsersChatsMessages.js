@@ -1,4 +1,4 @@
-// models/UsersChatsMessages.js
+require("dotenv").config();
 const { Model, DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/db'); // Adjust the path as needed
 
@@ -9,6 +9,9 @@ class UsersChatsMessages extends Model {
   static async getChatMessagesFromChatID(chat_id, user_id){
     // const chat_records = await userschatsmessages.findAll({where: {chat_id: chat_id, published: '1'} });
     let chat_records = "";
+    let limit = process.env.CHAT_MESSAGE_LIMIT;
+    if(!limit) limit = 50;
+    limit = parseInt(limit);
     try{
       chat_records = await sequelize.query(
         `
@@ -17,9 +20,10 @@ class UsersChatsMessages extends Model {
           ON (g.user_id = u.id)
           WHERE g.chat_id = :chat_id
           AND g.published = '1'
+          LIMIT :limit
         `,
         {
-          replacements: {chat_id},
+          replacements: {chat_id, limit},
           type: Sequelize.QueryTypes.SELECT,
         }
       );

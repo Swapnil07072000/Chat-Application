@@ -64,6 +64,20 @@ class Users{
         req.session.user = user;
         return res.redirect("/user/chats");
     }
+
+    //Logout
+    async signOut(req, res){
+        if(req.session && req.session.user){
+            req.session.destroy((error)=>{
+                if(error){
+                    return res.redirect("/user/chats");
+                }
+                res.clearCookie("connect.sid");
+                return res.redirect("/login");
+            });
+        }
+        
+    }
 }
 
 module.exports = new Users;

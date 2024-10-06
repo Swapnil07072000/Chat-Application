@@ -23,7 +23,7 @@ class Chats{
         // console.log(all_groups_list, chat_id_list);
         const other_groups_list = await chatgroups.getAllGroup(chat_id_list);
         // console.log(other_groups_list);
-        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list}); 
+        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list, user: user}); 
     }
 
     //Group Creation

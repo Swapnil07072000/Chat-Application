@@ -11,6 +11,9 @@ router.get("/", (req, res)=>{
     res.render("index");
 });
 router.get("/login", (req, res)=>{
+    if(req.session.user){
+        return res.redirect("/user/chats");
+    }
     res.render("login");
 });
 router.post("/login", users.signIn);
@@ -26,5 +29,7 @@ router.post("/chat/create", authenticatemiddleware.handle.bind(authenticatemiddl
 
 router.get("/user/chats/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.getChatById);
 router.get("/user/chatjoin/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.joinChatGroup);
+
+router.get("/user/logout", authenticatemiddleware.handle.bind(authenticatemiddleware), users.signOut);
 
 module.exports = router;

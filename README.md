@@ -29,7 +29,11 @@ Future Me:
 Priority: 
     1. Need to check the socket.io connection as it is creating problem -> Done 
     - I have checked and fixed as it was the server listen issue 
-    2. Need to fix the disconnection for new user comes in group -> Pending
+    2. Need to fix the disconnection for new user comes in group -> Done
 1. Users will select which group to join. -> Done
 2. If the group created by same user he will be already present and join button will not display-> Done
+
+3. To edit/delete the messages send(Need to find some way to make it possible) -> Pending
+4. One can send the images, documents, gif etc -> Pending
+5. React to the messages send/recieved(Need to find some way to do this) -> Pending 
 
