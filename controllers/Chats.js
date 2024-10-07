@@ -15,7 +15,8 @@ class Chats{
     //Get All the groups
     async getAllGroups(req, res){
         const user = req.session.user;
-        // console.log(user.id);
+
+        // console.log(user.id, req.session.user.data.id);
         const user_id = user.id;
         // const selfCreatedGroups = await chatgroups.findAll({where: {user_id}});
         // console.log(chatsgroupusers);

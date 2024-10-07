@@ -2,6 +2,8 @@
 const users = require('../models/Users');
 const bcrypt = require("bcryptjs");
 // const session = require('express-session');
+// const jwt = require("jsonwebtoken");
+const JwtToken = require("../config/jwtToken");
 
 class Users{
 
@@ -61,6 +63,11 @@ class Users{
         if(!isMatch){
             return res.redirect("/login");
         }
+        const jwtInstance = new JwtToken();
+        const token = jwtInstance.createJWTToken(user);
+        res.cookie("jwtToken", token, {
+            httpOnly: true
+        });
         req.session.user = user;
         return res.redirect("/user/chats");
     }
@@ -73,6 +80,7 @@ class Users{
                     return res.redirect("/user/chats");
                 }
                 res.clearCookie("connect.sid");
+                res.clearCookie("jwtToken");
                 return res.redirect("/login");
             });
         }

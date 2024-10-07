@@ -48,6 +48,9 @@ redisClient.on("error", (err)=>{
     console.error("Redis error: "+error);
 })
 */
+/*
+Using redis to store the session removed and 
+replaced with JWT
 
 const redisInstance = new RedisClient();
 // redisInstance.connect();
@@ -55,7 +58,18 @@ const redisClient = redisInstance.getClient();
 // console.log("A "+redisClient)
 // Configure session middleware
 app.use(session({
-    store: new RedisStore({ client: redisClient }),
+    // store: new RedisStore({ client: redisClient }),
+    secret: process.env.SESSION_SECRET, // Replace with a secure key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 // 1-hour expiration 
+    } 
+}));
+
+*/
+app.use(session({
     secret: process.env.SESSION_SECRET, // Replace with a secure key
     resave: false,
     saveUninitialized: true,

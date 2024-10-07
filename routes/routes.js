@@ -4,6 +4,7 @@ const users = require(("../controllers/Users"));
 const chats = require(("../controllers/Chats"));
 
 const authenticatemiddleware = require("../middlewares/authenticate");
+const veriftJWTToken = require("../middlewares/verifyToken");
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.get("/", (req, res)=>{
     res.render("index");
 });
 router.get("/login", (req, res)=>{
+    console.log(req.session.user);
     if(req.session.user){
         return res.redirect("/user/chats");
     }
@@ -23,7 +25,8 @@ router.get("/register", (req, res)=>{
 });
 router.post("/register", users.signUp);
 
-router.get("/user/chats", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.getAllGroups);
+// router.get("/user/chats", [veriftJWTToken.veriftJWTToken, authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
+router.get("/user/chats", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
 
 router.post("/chat/create", authenticatemiddleware.handle.bind(authenticatemiddleware) , chats.createGroup);
 
