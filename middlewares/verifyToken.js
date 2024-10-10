@@ -26,10 +26,10 @@ class JwtToken {
 
         try {
             var decoded = jwt.verify(token, this.secret);
-            req.session.user = decoded;
-            if (!req.session.user.id) {
-                req.session.user = req.session.user.data;
-            }
+            req.session.user = decoded.data;
+            // if (!req.session.user.id) {
+            //     req.session.user = req.session.user.data;
+            // }
             return next();
         } catch (error) {
             console.error(error);

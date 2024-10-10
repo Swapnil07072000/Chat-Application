@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Groups</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/css/all.min.css">
 </head>
 <body>
     <div class="container mt-5">
@@ -15,13 +15,13 @@
         <h2>Chat Groups</h2>
         <!-- User Dropdown Menu -->
         <div class="d-flex justify-content-between mb-3">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createGroupModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">
                 Create New Group
             </button>
 
             <!-- User Profile Icon with Dropdown -->
             <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <!-- Font Awesome user icon -->
                     <i class="fas fa-user-circle fa-lg"></i>
                     <span><%= user.username %></span>
@@ -61,12 +61,12 @@
         </ul>
 
         <!-- Modal for creating a new group -->
-        <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+        <div class="modal fade" id="createGroupModal" tabindex="-1"     aria-labelledby="createGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createGroupModalLabel">Create New Chat Group</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <h5 class="modal-title fs-5" id="createGroupModalLabel">Create New Chat Group</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -76,7 +76,9 @@
                                 <label for="groupName">Group Name</label>
                                 <input type="text" name="groupName" id="groupName" class="form-control" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">Create Group</button>
+                            <div class="form-group pt-4">
+                                <button type="submit" class="btn btn-primary form-control">Create Group</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -85,9 +87,9 @@
     </div>
 
     <!-- Include jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Handle the form submission via AJAX
