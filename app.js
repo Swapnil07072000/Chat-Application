@@ -17,7 +17,10 @@ const RedisClient = require('./config/redis');
 const app = express();
 //Socket-io Settings
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server,{
+    pingInterval: 10000, 
+    pingTimeout: 5000,   
+});
 // console.log(io);
 new ChatSocket(io);
 

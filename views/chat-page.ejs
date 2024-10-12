@@ -91,7 +91,12 @@
     const user_id = <%= user.id %>;
     const messageList = document.getElementById('message-list');
     document.addEventListener('DOMContentLoaded', (event) => {
-        const socket = io();
+        const socket = io({
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,   
+            reconnectionDelayMax: 5000
+        });
         socket.emit("joinChatGroup", chat_id);
         
         /* get and set the previous chat records */
@@ -174,6 +179,11 @@
             messageList.appendChild(newMessage);
             // Scroll to bottom of the chat
             messageList.scrollTop = messageList.scrollHeight;
+        });
+
+        socket.on('disconnect', () => {
+        //   window.location.reload();
+          socket.connect();
         });
     });
 </script>
