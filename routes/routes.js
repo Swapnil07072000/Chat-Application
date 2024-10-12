@@ -35,6 +35,7 @@ router.get("/user/user-profile/:user_id", [veriftJWTToken.handle.bind(veriftJWTT
 router.get("/user/chats/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getChatById);
 router.get("/user/chatjoin/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.joinChatGroup);
 router.post("/user/friendrequest", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.sendFriendRequest);
+router.post("/user/friendrequestaction/:action", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.actionOnRequest);
 
 router.get("/user/friend-requests", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllFriendRequestsForUser);
 

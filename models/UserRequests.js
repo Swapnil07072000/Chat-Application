@@ -48,7 +48,7 @@ class UserRequests extends Model {
         
         }catch(error){
             // return error;
-            console.log(error);
+            console.log("Error in checking the friend request: "+error);
             is_error = true;
             return [is_error, result];
         }        
@@ -58,38 +58,42 @@ class UserRequests extends Model {
     static async isFriendRequestSend(from_user, to_user){
         let result = "";
         let is_error = false, is_present = false;
+        // console.log(from_user, to_user);
         try{
-        result = await sequelize.query(
-            `
-            SELECT ur.* FROM user_requests AS ur
-            WHERE ur.published = '1'
-            AND ur.status = '0'
-            AND (ur.request_last_action_by = :from_user
-            OR ur.request_last_action_by = :to_user)
-            AND (ur.request_to = :from_user
-            OR ur.request_to = :to_user)
-            `,
-            {
-            replacements: {from_user, to_user},
-            type: Sequelize.QueryTypes.SELECT,
+            result = await sequelize.query(
+                `
+                SELECT ur.* FROM user_requests AS ur
+                WHERE ur.published = '1'
+                AND ur.status = '0'
+                AND (ur.request_last_action_by = :from_user
+                OR ur.request_last_action_by = :to_user)
+                AND (ur.request_to = :from_user
+                OR ur.request_to = :to_user)
+                `,
+                {
+                replacements: {from_user, to_user},
+                type: Sequelize.QueryTypes.SELECT,
+                }
+            );  
+            // console.log(result);
+            // is_present = (!result)?false:true;
+            if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
+                is_present = true;
             }
-        );  
-        // console.log(result);
-        // is_present = (!result)?false:true;
-        if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
-            is_present = true;
-        }
-        let is_my_request = true;
-        // console.log(result[0], result.request_last_action_by, from_user);
-        if(result[0].request_last_action_by != from_user){
-            is_my_request = false;
-        }
-        // console.log(is_error, is_present);
-        return [is_error, is_present, is_my_request];
+            let is_my_request = true;
+            // console.log(result[0], result.request_last_action_by, from_user);
+            if(result[0]){
+                if(result[0].request_last_action_by != from_user){
+                    is_my_request = false;
+                }
+            }
+            
+            // console.log(is_error, is_present);
+            return [is_error, is_present, is_my_request];
         
         }catch(error){
             // return error;
-            console.log(error);
+            console.log("Error in already friend request send or not: "+error);
             is_error = true;
             return [is_error, is_present];
         }
@@ -139,6 +143,14 @@ UserRequests.init({
     request_last_action_on: {
         type: DataTypes.DATE(3),
         defaultValue: sequelize.literal('CURRENT_TIMESTAMP(3)'), 
+    },
+    created_by: {
+        type: DataTypes.INTEGER(11),
+        allowNull: false,
+        references: {
+            model: 'users', 
+            key: 'id',
+        },
     },
     created_at: {
         type: DataTypes.DATE(3),

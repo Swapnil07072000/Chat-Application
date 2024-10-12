@@ -59,10 +59,10 @@
                                 <strong><%= request.username %></strong>
                             </div>
                             <div>
-                                <button class="btn btn-success btn-sm mx-1" onclick="handleRequest('accept', <%= request.id %>)">
+                                <button class="btn btn-success btn-sm mx-1" onclick="handleRequest('accept', '<%= request.request_id %>')">
                                     <i class="fas fa-check"></i> Accept
                                 </button>
-                                <button class="btn btn-danger btn-sm mx-1" onclick="handleRequest('reject', <%= request.id %>)">
+                                <button class="btn btn-danger btn-sm mx-1" onclick="handleRequest('reject', '<%= request.request_id %>')">
                                     <i class="fas fa-times"></i> Reject
                                 </button>
                             </div>
@@ -84,8 +84,9 @@
     <script>
         function handleRequest(action, requestId) {
             // AJAX call to accept or reject the friend request
+            // console.log(requestId);
             $.ajax({
-                url: `/user/friendrequest/${action}`,
+                url: `/user/friendrequestaction/${action}`,
                 type: 'POST',
                 data: { requestId: requestId },
                 success: function(response) {

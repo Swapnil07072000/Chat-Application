@@ -21,7 +21,7 @@ class UsersCircle extends Model {
             type: Sequelize.QueryTypes.SELECT,
             }
         );  
-        // console.log(result);
+        console.log(result);
         // is_present = (!result)?false:true;
         if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
             is_present = true;
@@ -49,7 +49,7 @@ UsersCircle.init({
         allowNull: false,
         unique: true,
     },
-    request_user_from: {
+    friend_user_id: {
         type: DataTypes.INTEGER(11),
         allowNull: false,
         references: {
@@ -57,7 +57,7 @@ UsersCircle.init({
             key: 'id',
         },
     },
-    request_user_to: {
+    user_id: {
         type: DataTypes.INTEGER(11),
         allowNull: false,
         references: {

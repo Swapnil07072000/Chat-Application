@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 // const jwt = require("jsonwebtoken");
 const JwtToken = require("../config/jwtToken");
 const { v4: uuidv4 } = require("uuid");
-const { response } = require('express');
+const Op = require('sequelize').Op
 
 class Users{
 
@@ -114,9 +114,34 @@ class Users{
             const [is_error_in_request, is_prev_friend_request_present, is_my_request] = await userrequests.isFriendRequestSend(req.session.user.id, user.id);
             const [is_error, is_already_friend] = await usersCircle.isUserAlreadyFriend(req.session.user.id, user.id);
             // console.log(is_my_request);
-            
-            
-            res.render("user-profile", {"frienduser":user, "curruser": req.session.user, "is_prev_request_present": is_prev_friend_request_present, "is_already_friend": is_already_friend, "is_my_request": is_my_request});
+            // console.log(is_already_friend);
+            const curr_user = req.session.user;
+            let result = "";
+            if(is_already_friend && (curr_user.id != user_id)){
+                result = await usersCircle.findOne(
+                    {
+                        where: {
+                            friend_user_id:{
+                                [Op.or]: [curr_user.id, user_id]
+                            },
+                            user_id:{
+                                [Op.or]: [curr_user.id, user_id]
+                            } 
+                        }
+                    }
+                );
+                // console.log(result);
+            }
+            res.render("user-profile", 
+                {
+                    "frienduser":user, 
+                    "curruser": req.session.user, 
+                    "is_prev_request_present": is_prev_friend_request_present, 
+                    "is_already_friend": is_already_friend, 
+                    "is_my_request": is_my_request,
+                    "user_circle_record": result,
+                }
+            );
         }catch(error){
             // console.log("Error finding the user");
             console.log(error);
@@ -154,7 +179,14 @@ class Users{
             const data = {"request_user_from": curr_user, "request_user_to": friend_user};
             const request_data = JSON.stringify(data);
             
-            await userrequests.create({request_id:request_id, request_data: request_data, request_to:friend_user, request_last_action_by: curr_user})
+            await userrequests.create(
+                {
+                    request_id:request_id, 
+                    request_data: request_data, 
+                    request_to:friend_user, 
+                    request_last_action_by: curr_user,
+                    created_by: curr_user,
+                })
                 .then((request)=>{
                     if(!request.id){
                         let response = {"httpCode": 500, "httpMessage": "Error in sending friendrequest."};

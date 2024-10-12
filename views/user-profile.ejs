@@ -30,7 +30,7 @@
                 case (is_prev_request_present === true && is_my_request == false):    
                 %>
                         <div class="alert alert-info mx-2" role="alert">
-                            <i class="fas fa-info-circle"></i> Friend request received.
+                            <i class="fas fa-info-circle"></i> Friend request received.<br/>
                             <a href="/user/friend-requests?from=profile" class="btn btn-link">Go to Request Page</a>
                         </div>
                 <%  break; %>
@@ -46,9 +46,10 @@
                 <% break; 
                     }
                 %>
-                <button class="btn btn-success mx-2" id="chatButton">
+                <a href="/user/chats/<%= user_circle_record.chat_id %>" class="btn btn-secondary">Chat</a>
+                <!-- <button class="btn btn-success mx-2" id="chatButton">
                     <i class="fas fa-comments"></i> Chat
-                </button>
+                </button> -->
             </div>
         </div>
     </div>

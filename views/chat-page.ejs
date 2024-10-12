@@ -165,8 +165,19 @@
         socket.on("chat message", (message) => {
             const newMessage = document.createElement('div');
             newMessage.classList.add('message', (message.user_id === user_id) ? 'user' : 'other');
-            const username = document.createElement('span');
-            username.classList.add('username'); // You can style this class in CSS
+            // const username = document.createElement('span');
+            // username.classList.add('username'); // You can style this class in CSS
+            // username.innerText = message.chat_of_user; // Assuming message.username contains the username
+            var username = "";
+            if(message.user_id != user_id){
+                username = document.createElement('a');
+                username.classList.add('username'); // You can style this class in CSS
+                username.href = "/user/user-profile/"+message.user_id;
+                username.target = "_blank";
+            }else{
+                username = document.createElement('div');
+                username.classList.add('username'); // You can style this class in CSS
+            }
             username.innerText = message.chat_of_user; // Assuming message.username contains the username
             const messageContent = document.createElement('div');
             messageContent.innerText = message.message;
