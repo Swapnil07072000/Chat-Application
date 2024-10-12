@@ -3,24 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
+    <title>User Profile - <%= frienduser.username %></title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/all.min.css">
 </head>
 <body>
     <div class="container mt-5">
+        <a href="/user/chats" class="btn btn-primary">Back</a>
         <div class="card p-4 text-center">
             <div class="d-flex justify-content-center">
                 <!-- User Icon -->
                 <i class="fas fa-user-circle fa-5x mb-3"></i>
             </div>
             <!-- Username -->
-            <h2 class="mb-4" id="username">John Doe</h2>
-            <!-- Buttons -->
-            <div class="d-flex justify-content-center">
-                <button class="btn btn-primary mx-2" id="friendRequestButton">
-                    <i class="fas fa-user-plus"></i> Friend Request
-                </button>
+            <h2 class="mb-4" id="username"><%= frienduser.username %></h2>
+            <!-- Status/Buttons -->
+            <div class="d-flex justify-content-center align-items-center">
+                <% switch(true){ 
+                    case (is_prev_request_present === true && is_my_request == true):    
+                %>
+                        <div class="alert alert-warning mx-2" role="alert">
+                            <i class="fas fa-hourglass-half"></i> Friend Request Already Sent <br/>
+                            <a href="/user/friend-requests?from=profile&user_id=<%= frienduser.id %>" class="btn btn-link">Go to Request Page</a>
+                        </div>
+                <%  break;
+                case (is_prev_request_present === true && is_my_request == false):    
+                %>
+                        <div class="alert alert-info mx-2" role="alert">
+                            <i class="fas fa-info-circle"></i> Friend request received.
+                            <a href="/user/friend-requests?from=profile" class="btn btn-link">Go to Request Page</a>
+                        </div>
+                <%  break; %>
+                <%  case (is_already_friend === true): %>
+                        <div class="alert alert-success mx-2" role="alert">
+                            <i class="fas fa-check-circle"></i> Already Friend
+                        </div>
+                <%  break; %>
+                <% default: %>
+                        <button class="btn btn-primary mx-2" id="friendRequestButton">
+                            <i class="fas fa-user-plus"></i> Send Friend Request
+                        </button>
+                <% break; 
+                    }
+                %>
                 <button class="btn btn-success mx-2" id="chatButton">
                     <i class="fas fa-comments"></i> Chat
                 </button>
@@ -33,4 +58,33 @@
     <script src="/js/popper.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
 </body>
+<script>
+    const curr_user = <%= curruser.id %>;
+    const friend_user = <%= frienduser.id %>;
+    jQuery("#friendRequestButton").on("click", function(){
+        sendFriendRequest();
+    })
+    function sendFriendRequest(){
+        let data = {};
+        data.friend_user = friend_user;
+        data.curr_user = curr_user;
+        jQuery.ajax({
+            url: "/user/friendrequest",
+            data: data,
+            type: "POST",
+            success: function(response){
+                if(response.httpCode == 200){
+                    alert(response.httpMessage);
+                    window.location.reload();
+                }else{
+                    alert(response.httpMessage);
+                }
+            },
+            failure: function(){
+                alert("Something went wrong");
+                window.location.reload();
+            }
+        })
+    }
+</script>
 </html>

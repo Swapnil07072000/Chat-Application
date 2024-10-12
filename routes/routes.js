@@ -1,5 +1,7 @@
 const express = require("express");
 
+require("../config/modelsSync");
+
 const users = require(("../controllers/Users"));
 const chats = require(("../controllers/Chats"));
 
@@ -28,14 +30,16 @@ router.post("/register", users.signUp);
 // router.get("/user/chats", [veriftJWTToken.veriftJWTToken, authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
 router.get("/user/chats", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
 
-router.post("/chat/create", authenticatemiddleware.handle.bind(authenticatemiddleware) , chats.createGroup);
-router.get("/user/user-profile", (req, res)=>{
-    res.render("user-profile");
-});
-router.get("/user/chats/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.getChatById);
-router.get("/user/chatjoin/:chat_id", authenticatemiddleware.handle.bind(authenticatemiddleware), chats.joinChatGroup);
+router.post("/chat/create", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)] , chats.createGroup);
+router.get("/user/user-profile/:user_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.getUserProfileInfo);
+router.get("/user/chats/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getChatById);
+router.get("/user/chatjoin/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.joinChatGroup);
+router.post("/user/friendrequest", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.sendFriendRequest);
 
-router.get("/user/logout", authenticatemiddleware.handle.bind(authenticatemiddleware), users.signOut);
+router.get("/user/friend-requests", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllFriendRequestsForUser);
+
+
+router.get("/user/logout", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.signOut);
 
 
 module.exports = router;

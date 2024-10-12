@@ -59,16 +59,17 @@ UsersChatsMessages.init(
     message_id: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      unique: true, // Ensure unique constraint for message_id
+      unique: true, 
     },
     message: {
       type: DataTypes.TEXT,
+      allowNull: true,
     },
     chat_id: {
       type: DataTypes.STRING(50),
       allowNull: false,
       references: {
-        model: 'chat_groups', // Reference to the ChatGroups model
+        model: 'chat_groups', 
         key: 'chat_id',
       },
     },

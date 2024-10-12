@@ -107,13 +107,21 @@ ChatGroups.init(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    chat_description: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'users', // Name of the user model
+        model: 'users', 
         key: 'id',
       },
+    },
+    is_group: {
+      type: DataTypes.ENUM('0', '1'),
+      defaultValue: '1',
     },
     published: {
       type: DataTypes.ENUM('0', '1'),

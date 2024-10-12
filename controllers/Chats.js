@@ -1,6 +1,7 @@
 // const users = require("../models/Users");
 const chatgroups = require('../models/ChatGroups');
 const chatsgroupusers = require('../models/ChatsGroupUsers');
+const userrequests = require("../models/UserRequests");
 const userschatsmessages = require('../models/UsersChatsMessages');
 // const bcrypt = require("bcryptjs");
 // const session = require('express-session');
@@ -20,6 +21,7 @@ class Chats{
         const user_id = user.id;
         // const selfCreatedGroups = await chatgroups.findAll({where: {user_id}});
         // console.log(chatsgroupusers);
+        // console.log(user_id);
         const [chat_id_list, all_groups_list] = await chatgroups.getAllGroupForUser(user_id);
         // console.log(all_groups_list, chat_id_list);
         const other_groups_list = await chatgroups.getAllGroup(chat_id_list);
@@ -31,13 +33,15 @@ class Chats{
     async createGroup(req, res){
         const user = req.session.user;
         var user_id = user.id;
-        const {groupName, users} = req.body;
+        const {groupName, groupDescription, users} = req.body;
         const chat_id = uuidv4();
         const chat_name = groupName;
+        const chat_description = groupDescription;
         // const current_timestamp = this.generateDatabaseDateTime();
         // const chat_id = await jwt.sign({ uuid: uuid}, current_timestamp, { algorithm: 'HS256' });
+        // console.log(chat_description);
         try{
-            const group = await chatgroups.create({chat_id, chat_name, user_id});
+            const group = await chatgroups.create({chat_id, chat_name, chat_description, user_id});
             const group_users = await chatsgroupusers.create({chat_id, user_id})
                 .catch((error)=>{
                     throw error;
@@ -105,6 +109,27 @@ class Chats{
             date = new Date();
         }
         return date.toISOString().replace("T"," ").substring(0, 19);
+    }
+
+    async getAllFriendRequestsForUser(req, res){
+        const {from} = req.query;
+        let back_url = "";
+        if(from){
+            switch(from){
+                case "profile":
+                    const {user_id} = req.query;
+                    if(!user_id){
+                        back_url = "/user/user-profile";
+                    }else{
+                        back_url = "/user/user-profile/"+user_id;
+                    }
+                    
+                break;
+            }
+        }
+        const user = req.session.user;
+        const [is_error, friendRequests, friendRequestsFromOthers] = await userrequests.getAllFriendRequestsForUser(user.id);
+        res.render("listfriendrequests",{sentRequests: friendRequests,receivedRequests: friendRequestsFromOthers, backURL: back_url });
     }
 }
 

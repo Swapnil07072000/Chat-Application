@@ -1331,6 +1331,21 @@
 										},
 										{
 											"_type": "ERDColumnView",
+											"_id": "AAAAAAGSfD21sERlSBw=",
+											"_parent": {
+												"$ref": "AAAAAAGSYfqEgC6WQuc="
+											},
+											"model": {
+												"$ref": "AAAAAAGSfD21fkRiMdE="
+											},
+											"font": "Arial;13;0",
+											"left": 165,
+											"top": 1071,
+											"width": 394.42919921875,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
 											"_id": "AAAAAAGSYf08di66N2E=",
 											"_parent": {
 												"$ref": "AAAAAAGSYfqEgC6WQuc="
@@ -1340,7 +1355,7 @@
 											},
 											"font": "Arial;13;0",
 											"left": 165,
-											"top": 1071,
+											"top": 1086,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1355,7 +1370,7 @@
 											},
 											"font": "Arial;13;0",
 											"left": 165,
-											"top": 1086,
+											"top": 1101,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1370,7 +1385,7 @@
 											},
 											"font": "Arial;13;0",
 											"left": 165,
-											"top": 1101,
+											"top": 1116,
 											"width": 394.42919921875,
 											"height": 13
 										}
@@ -1379,14 +1394,14 @@
 									"left": 160,
 									"top": 991,
 									"width": 404.42919921875,
-									"height": 128
+									"height": 143
 								}
 							],
 							"font": "Arial;13;0",
 							"left": 160,
 							"top": 968,
 							"width": 404.42919921875,
-							"height": 151,
+							"height": 166,
 							"nameLabel": {
 								"$ref": "AAAAAAGSYfqEgC6VqC8="
 							},
@@ -1493,11 +1508,11 @@
 										"$ref": "AAAAAAGSYgV/hi84N6A="
 									},
 									"font": "Arial;13;1",
-									"left": 856,
-									"top": 1029,
+									"left": 816,
+									"top": 1133,
 									"width": 404.42919921875,
 									"height": 13,
-									"text": "users_circle_requests"
+									"text": "user_requests"
 								},
 								{
 									"_type": "ERDColumnCompartmentView",
@@ -1519,8 +1534,8 @@
 												"$ref": "AAAAAAGSYgY88C9ESJI="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1052,
+											"left": 821,
+											"top": 1156,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1534,8 +1549,8 @@
 												"$ref": "AAAAAAGSYjnnwy9M1Zw="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1067,
+											"left": 821,
+											"top": 1171,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1549,8 +1564,23 @@
 												"$ref": "AAAAAAGSYjo30y9T0VQ="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1082,
+											"left": 821,
+											"top": 1186,
+											"width": 394.42919921875,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAGSfcfzfEWeUP0=",
+											"_parent": {
+												"$ref": "AAAAAAGSYgV/hi860eM="
+											},
+											"model": {
+												"$ref": "AAAAAAGSfcfzIEWbRNA="
+											},
+											"font": "Arial;13;0",
+											"left": 821,
+											"top": 1201,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1564,8 +1594,38 @@
 												"$ref": "AAAAAAGSYkAvMC9bBM0="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1097,
+											"left": 821,
+											"top": 1216,
+											"width": 394.42919921875,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAGSfDxq8ERWKWg=",
+											"_parent": {
+												"$ref": "AAAAAAGSYgV/hi860eM="
+											},
+											"model": {
+												"$ref": "AAAAAAGSfDxq1kRTYIU="
+											},
+											"font": "Arial;13;0",
+											"left": 821,
+											"top": 1231,
+											"width": 394.42919921875,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAGSfDwoGkRNGMA=",
+											"_parent": {
+												"$ref": "AAAAAAGSYgV/hi860eM="
+											},
+											"model": {
+												"$ref": "AAAAAAGSfDwn/kRKCGg="
+											},
+											"font": "Arial;13;0",
+											"left": 821,
+											"top": 1246,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1579,8 +1639,8 @@
 												"$ref": "AAAAAAGSYk+ARC9mlQI="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1112,
+											"left": 821,
+											"top": 1261,
 											"width": 394.42919921875,
 											"height": 13
 										},
@@ -1594,24 +1654,24 @@
 												"$ref": "AAAAAAGSYk+4zi9t7W8="
 											},
 											"font": "Arial;13;0",
-											"left": 861,
-											"top": 1127,
+											"left": 821,
+											"top": 1276,
 											"width": 394.42919921875,
 											"height": 13
 										}
 									],
 									"font": "Arial;13;0",
-									"left": 856,
-									"top": 1047,
+									"left": 816,
+									"top": 1151,
 									"width": 404.42919921875,
-									"height": 98
+									"height": 143
 								}
 							],
 							"font": "Arial;13;0",
-							"left": 856,
-							"top": 1024,
+							"left": 816,
+							"top": 1128,
 							"width": 404.42919921875,
-							"height": 121,
+							"height": 166,
 							"nameLabel": {
 								"$ref": "AAAAAAGSYgV/hi85DDg="
 							},
@@ -1635,11 +1695,11 @@
 									"_parent": {
 										"$ref": "AAAAAAGSYlACYi95BVU="
 									},
+									"visible": false,
 									"font": "Arial;13;0",
-									"left": 685,
-									"top": 989,
+									"left": 831,
+									"top": 1054,
 									"width": 49.86083984375,
-									"height": 130,
 									"autoResize": true,
 									"alpha": 1.4056492710023296,
 									"distance": 6.082762530298219,
@@ -1647,7 +1707,6 @@
 										"$ref": "AAAAAAGSYlACYi95BVU="
 									},
 									"edgePosition": 1,
-									"text": "One user can send multiple requests to different users at once",
 									"wordWrap": true
 								},
 								{
@@ -1657,8 +1716,8 @@
 										"$ref": "AAAAAAGSYlACYi95BVU="
 									},
 									"font": "Arial;13;0",
-									"left": 830,
-									"top": 1056,
+									"left": 841,
+									"top": 1096,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -1692,7 +1751,7 @@
 								"$ref": "AAAAAAGSYgV/hi84N6A="
 							},
 							"lineStyle": 2,
-							"points": "856:1048;564:1048",
+							"points": "856:1128;856:1048;564:1048",
 							"nameLabel": {
 								"$ref": "AAAAAAGSYlACYi96JdU="
 							},
@@ -1701,6 +1760,189 @@
 							},
 							"headNameLabel": {
 								"$ref": "AAAAAAGSYlACYy98bqE="
+							}
+						},
+						{
+							"_type": "ERDRelationshipView",
+							"_id": "AAAAAAGSfD55YkSQT54=",
+							"_parent": {
+								"$ref": "AAAAAAGSOIM9FglOcNU="
+							},
+							"model": {
+								"$ref": "AAAAAAGSfD55YkSMz9g="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfD55YkSR2+I=",
+									"_parent": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"left": 919,
+									"top": 857,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfD55YkSSbsc=",
+									"_parent": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									},
+									"font": "Arial;13;0",
+									"left": 882,
+									"top": 679,
+									"width": 49.86083984375,
+									"height": 130,
+									"autoResize": true,
+									"alpha": 0.013792274204326826,
+									"distance": 145.01379244747721,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									},
+									"edgePosition": 2,
+									"text": "One user can send multiple requests to different users at once",
+									"wordWrap": true
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfD55YkSTaUA=",
+									"_parent": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									},
+									"font": "Arial;13;0",
+									"left": 919,
+									"top": 1096,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfD55YkSQT54="
+									}
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAGSYgV/hi84N6A="
+							},
+							"tail": {
+								"$ref": "AAAAAAGSOIOt5glVPn0="
+							},
+							"lineStyle": 2,
+							"points": "904:600;904:1128",
+							"nameLabel": {
+								"$ref": "AAAAAAGSfD55YkSR2+I="
+							},
+							"tailNameLabel": {
+								"$ref": "AAAAAAGSfD55YkSSbsc="
+							},
+							"headNameLabel": {
+								"$ref": "AAAAAAGSfD55YkSTaUA="
+							}
+						},
+						{
+							"_type": "UMLTextView",
+							"_id": "AAAAAAGSfD9bHES13D0=",
+							"_parent": {
+								"$ref": "AAAAAAGSOIM9FglOcNU="
+							},
+							"font": "Arial;13;0",
+							"left": 656,
+							"top": 1032,
+							"width": 100,
+							"height": 77,
+							"text": "When request is accepted then create the entry of user circle"
+						},
+						{
+							"_type": "ERDRelationshipView",
+							"_id": "AAAAAAGSfEFFuUWF3WM=",
+							"_parent": {
+								"$ref": "AAAAAAGSOIM9FglOcNU="
+							},
+							"model": {
+								"$ref": "AAAAAAGSfEFFuEWBCbw="
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfEFFuUWGS7s=",
+									"_parent": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"left": 1047,
+									"top": 1027,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfEFFuUWH28g=",
+									"_parent": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									},
+									"font": "Arial;13;0",
+									"left": 951,
+									"top": 943,
+									"width": 44.79541015625,
+									"height": 143,
+									"autoResize": true,
+									"alpha": -1.2449975276881893,
+									"distance": 78.10889834071403,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									},
+									"edgePosition": 2,
+									"text": "Multiple users can be present in multiple chat groups and vice versa",
+									"wordWrap": true
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "AAAAAAGSfEFFuUWIlG8=",
+									"_parent": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									},
+									"font": "Arial;13;0",
+									"left": 589,
+									"top": 1026,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "AAAAAAGSfEFFuUWF3WM="
+									}
+								}
+							],
+							"font": "Arial;13;0",
+							"head": {
+								"$ref": "AAAAAAGSYfqEgC6UcNo="
+							},
+							"tail": {
+								"$ref": "AAAAAAGSOIkN6wmYnqg="
+							},
+							"lineStyle": 2,
+							"points": "1048:990;1048:1018;564:1018",
+							"nameLabel": {
+								"$ref": "AAAAAAGSfEFFuUWGS7s="
+							},
+							"tailNameLabel": {
+								"$ref": "AAAAAAGSfEFFuUWH28g="
+							},
+							"headNameLabel": {
+								"$ref": "AAAAAAGSfEFFuUWIlG8="
 							}
 						}
 					]
@@ -1883,6 +2125,36 @@
 								},
 								"cardinality": "0..*"
 							}
+						},
+						{
+							"_type": "ERDRelationship",
+							"_id": "AAAAAAGSfD55YkSMz9g=",
+							"_parent": {
+								"$ref": "AAAAAAGSOIOt5QlTDvA="
+							},
+							"end1": {
+								"_type": "ERDRelationshipEnd",
+								"_id": "AAAAAAGSfD55YkSNHAk=",
+								"_parent": {
+									"$ref": "AAAAAAGSfD55YkSMz9g="
+								},
+								"name": "One user can send multiple requests to different users at once",
+								"reference": {
+									"$ref": "AAAAAAGSOIOt5QlTDvA="
+								},
+								"cardinality": "0..*"
+							},
+							"end2": {
+								"_type": "ERDRelationshipEnd",
+								"_id": "AAAAAAGSfD55YkSOUPo=",
+								"_parent": {
+									"$ref": "AAAAAAGSfD55YkSMz9g="
+								},
+								"reference": {
+									"$ref": "AAAAAAGSYgV/hC8264A="
+								},
+								"cardinality": "0..*"
+							}
 						}
 					],
 					"columns": [
@@ -2014,6 +2286,36 @@
 								"name": "1. A user who creates the chats will default be in that chat and can also be included in multiple chats created by him or not",
 								"reference": {
 									"$ref": "AAAAAAGSOKDQfwsdA2o="
+								},
+								"cardinality": "0..*"
+							}
+						},
+						{
+							"_type": "ERDRelationship",
+							"_id": "AAAAAAGSfEFFuEWBCbw=",
+							"_parent": {
+								"$ref": "AAAAAAGSOIkN6gmW0Qc="
+							},
+							"end1": {
+								"_type": "ERDRelationshipEnd",
+								"_id": "AAAAAAGSfEFFuEWCTyA=",
+								"_parent": {
+									"$ref": "AAAAAAGSfEFFuEWBCbw="
+								},
+								"name": "Multiple users can be present in multiple chat groups and vice versa",
+								"reference": {
+									"$ref": "AAAAAAGSOIkN6gmW0Qc="
+								},
+								"cardinality": "0..*"
+							},
+							"end2": {
+								"_type": "ERDRelationshipEnd",
+								"_id": "AAAAAAGSfEFFuEWD94U=",
+								"_parent": {
+									"$ref": "AAAAAAGSfEFFuEWBCbw="
+								},
+								"reference": {
+									"$ref": "AAAAAAGSYfqEfy6SAeg="
 								},
 								"cardinality": "0..*"
 							}
@@ -2395,6 +2697,15 @@
 						},
 						{
 							"_type": "ERDColumn",
+							"_id": "AAAAAAGSfD21fkRiMdE=",
+							"_parent": {
+								"$ref": "AAAAAAGSYfqEfy6SAeg="
+							},
+							"name": "request_id [VARCHAR [50] | FOREIGN KEY]",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
 							"_id": "AAAAAAGSYf08Zy63jaE=",
 							"_parent": {
 								"$ref": "AAAAAAGSYfqEfy6SAeg="
@@ -2428,7 +2739,7 @@
 					"_parent": {
 						"$ref": "AAAAAAGSOIM9FQlNMhw="
 					},
-					"name": "users_circle_requests",
+					"name": "user_requests",
 					"ownedElements": [
 						{
 							"_type": "ERDRelationship",
@@ -2436,7 +2747,6 @@
 							"_parent": {
 								"$ref": "AAAAAAGSYgV/hC8264A="
 							},
-							"name": "One user can send multiple requests to different users at once",
 							"end1": {
 								"_type": "ERDRelationshipEnd",
 								"_id": "AAAAAAGSYlACYi92tnc=",
@@ -2486,7 +2796,16 @@
 							"_parent": {
 								"$ref": "AAAAAAGSYgV/hC8264A="
 							},
-							"name": "circle_id [VARCHAR [50] | FOREIGN KEY ]",
+							"name": "request_data [TEXT ]",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAGSfcfzIEWbRNA=",
+							"_parent": {
+								"$ref": "AAAAAAGSYgV/hC8264A="
+							},
+							"name": "request_to [INT[11] | FOREIGN KEY ]",
 							"length": 0
 						},
 						{
@@ -2496,6 +2815,24 @@
 								"$ref": "AAAAAAGSYgV/hC8264A="
 							},
 							"name": "status [ ENUM [negative1 | 0 | 1] | 0 ]",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAGSfDxq1kRTYIU=",
+							"_parent": {
+								"$ref": "AAAAAAGSYgV/hC8264A="
+							},
+							"name": "request_last_action_by [INT[11] | FOREIGN KEY ]",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAGSfDwn/kRKCGg=",
+							"_parent": {
+								"$ref": "AAAAAAGSYgV/hC8264A="
+							},
+							"name": "request_last_action_on [DATETIME]",
 							"length": 0
 						},
 						{
@@ -3305,7 +3642,7 @@
 									"left": 698,
 									"top": 106,
 									"width": 62.8671875,
-									"height": 65,
+									"height": 39,
 									"text": "Server site validate the credentials",
 									"wordWrap": true
 								}
@@ -3588,7 +3925,7 @@
 									"left": 514,
 									"top": 282,
 									"width": 54.18994140625,
-									"height": 91,
+									"height": 78,
 									"text": "Redirect to login Page with valid error message",
 									"wordWrap": true
 								}
@@ -4327,7 +4664,7 @@
 									"left": 357,
 									"top": 82,
 									"width": 27.8544921875,
-									"height": 26,
+									"height": 39,
 									"text": "Register Page UI",
 									"wordWrap": true
 								}
@@ -4735,7 +5072,7 @@
 									"left": 338,
 									"top": 178,
 									"width": 54.18994140625,
-									"height": 91,
+									"height": 65,
 									"text": "Redirecy to regiser page with error message",
 									"wordWrap": true
 								}
@@ -4860,7 +5197,7 @@
 									"left": 610,
 									"top": 266,
 									"width": 57.80810546875,
-									"height": 104,
+									"height": 91,
 									"text": "Create a new user and assign unique username to that user",
 									"wordWrap": true
 								}
@@ -5309,7 +5646,7 @@
 									"left": 250,
 									"top": 58,
 									"width": 62.8798828125,
-									"height": 65,
+									"height": 52,
 									"text": "Create a socket connection with server",
 									"wordWrap": true
 								}
@@ -5343,9 +5680,9 @@
 										"$ref": "AAAAAAGSOYHIoxF5i6Q="
 									},
 									"font": "Arial;13;0",
-									"left": 147,
+									"left": 150,
 									"top": 40,
-									"width": 62.8798828125,
+									"width": 57.03369140625,
 									"height": 52,
 									"autoResize": true,
 									"alpha": -4.541654103782405,
@@ -5596,7 +5933,7 @@
 									"left": 578,
 									"top": 82,
 									"width": 54.18994140625,
-									"height": 78,
+									"height": 65,
 									"text": "Try to get all the chats record for the user",
 									"wordWrap": true
 								}
@@ -6348,7 +6685,7 @@
 									"left": 634,
 									"top": 490,
 									"width": 54.18994140625,
-									"height": 91,
+									"height": 78,
 									"text": "Try to get the data or display valid error message",
 									"wordWrap": true
 								}
@@ -6941,7 +7278,7 @@
 									"left": 50,
 									"top": 778,
 									"width": 54.18994140625,
-									"height": 78,
+									"height": 65,
 									"text": "Create a new entry in table for this user chat",
 									"wordWrap": true
 								}
@@ -7147,7 +7484,7 @@
 									"left": 546,
 									"top": 802,
 									"width": 54.18994140625,
-									"height": 156,
+									"height": 130,
 									"text": "Create an entry in table for this chat, user and along with users included in this chat",
 									"wordWrap": true
 								}
@@ -7226,7 +7563,7 @@
 									"left": 682,
 									"top": 754,
 									"width": 58.53173828125,
-									"height": 65,
+									"height": 52,
 									"text": "Broadcast these message in that chat",
 									"wordWrap": true
 								}
@@ -7999,7 +8336,7 @@
 									"left": 242,
 									"top": 58,
 									"width": 54.18994140625,
-									"height": 117,
+									"height": 104,
 									"text": "Delete the token from cookie and destroy the session",
 									"wordWrap": true
 								}
@@ -8712,7 +9049,7 @@
 									"left": 642,
 									"top": 209,
 									"width": 54.18994140625,
-									"height": 26,
+									"height": 13,
 									"text": "Chat Page",
 									"wordWrap": true
 								},
@@ -9103,7 +9440,7 @@
 									"left": 426,
 									"top": 369,
 									"width": 62.8671875,
-									"height": 65,
+									"height": 52,
 									"text": "Store the credentials in DB table users",
 									"wordWrap": true
 								},
@@ -9291,7 +9628,7 @@
 									"left": 554,
 									"top": 481,
 									"width": 80.95166015625,
-									"height": 78,
+									"height": 65,
 									"text": "Create SESSION and assign valid token for authentication",
 									"wordWrap": true
 								},
@@ -9724,7 +10061,7 @@
 									"left": 34,
 									"top": 81,
 									"width": 54.18994140625,
-									"height": 26,
+									"height": 13,
 									"text": "Chat Page",
 									"wordWrap": true
 								},
@@ -9773,7 +10110,7 @@
 									"left": 242,
 									"top": 81,
 									"width": 54.18994140625,
-									"height": 39,
+									"height": 26,
 									"text": "User joins the group",
 									"wordWrap": true
 								},
@@ -9822,9 +10159,9 @@
 										"$ref": "AAAAAAGSYdyzmS0ECd4="
 									},
 									"font": "Arial;13;0",
-									"left": 156,
+									"left": 158,
 									"top": 55,
-									"width": 37.57177734375,
+									"width": 33.2109375,
 									"height": 143,
 									"autoResize": true,
 									"alpha": -1.3734005532698113,
@@ -10059,7 +10396,7 @@
 									"left": 826,
 									"top": 57,
 									"width": 54.18994140625,
-									"height": 130,
+									"height": 117,
 									"text": "The message is then handled by pub/sub system by message broker",
 									"wordWrap": true
 								},
@@ -10154,7 +10491,7 @@
 									"left": 682,
 									"top": 313,
 									"width": 59.96630859375,
-									"height": 78,
+									"height": 65,
 									"text": "The publisher send the message to subscriber",
 									"wordWrap": true
 								},
@@ -10240,6 +10577,18 @@
 							"subViews": [
 								{
 									"_type": "LabelView",
+									"_id": "AAAAAAGSfDKTv0Pq+P8=",
+									"_parent": {
+										"$ref": "AAAAAAGSYeDr8S1yReg="
+									},
+									"font": "Arial;13;0",
+									"left": 498,
+									"top": 437,
+									"width": 364,
+									"height": 13
+								},
+								{
+									"_type": "LabelView",
 									"_id": "AAAAAAGSYeDr8i14ie4=",
 									"_parent": {
 										"$ref": "AAAAAAGSYeDr8S1yReg="
@@ -10305,7 +10654,7 @@
 									"left": 746,
 									"top": 497,
 									"width": 62.8671875,
-									"height": 156,
+									"height": 130,
 									"text": "The subscriber recives the data from publisher, as publisher is subscribed to this channel",
 									"wordWrap": true
 								},

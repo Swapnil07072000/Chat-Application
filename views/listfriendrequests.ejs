@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Requests</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/all.min.css">
+    <style>
+        .scrollable-section {
+            max-height: 300px; /* Limit the height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <% backButton = (!backURL)?"/user/chats":backURL %>
+        <a href="<%= backButton %>" class="btn btn-primary">Back</a>
+        <h2 class="mb-4">Friend Requests</h2>
+
+        <!-- Section for Requests Sent by Me -->
+        <div>
+            <h4>Requests Sent by Me</h4>
+            <div class="scrollable-section">
+                <% if (sentRequests.length > 0) { %>
+                    <% sentRequests.forEach(function(request) { %>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-circle fa-2x mr-3"></i>
+                                <strong><%= request.username %></strong>
+                            </div>
+                            <button class="btn btn-warning btn-sm" onclick="cancelRequest(<%= request.id %>)">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i> No requests sent by you.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Section for Requests Sent to Me -->
+        <div>
+            <h4>Requests Sent to Me</h4>
+            <div class="scrollable-section">
+                <% if (receivedRequests.length > 0) { %>
+                    <% receivedRequests.forEach(function(request) { %>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-circle fa-2x mr-3"></i>
+                                <strong><%= request.username %></strong>
+                            </div>
+                            <div>
+                                <button class="btn btn-success btn-sm mx-1" onclick="handleRequest('accept', <%= request.id %>)">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                                <button class="btn btn-danger btn-sm mx-1" onclick="handleRequest('reject', <%= request.id %>)">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i> No friend requests received.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script>
+        function handleRequest(action, requestId) {
+            // AJAX call to accept or reject the friend request
+            $.ajax({
+                url: `/user/friendrequest/${action}`,
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function(response) {
+                    if (response.httpCode === 200) {
+                        alert(response.httpMessage);
+                        window.location.reload();
+                    } else {
+                        alert(response.httpMessage);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        }
+
+        function cancelRequest(requestId) {
+            // AJAX call to cancel the friend request
+            $.ajax({
+                url: `/user/friendrequest/cancel`,
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function(response) {
+                    if (response.httpCode === 200) {
+                        alert(response.httpMessage);
+                        window.location.reload();
+                    } else {
+                        alert(response.httpMessage);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

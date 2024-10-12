@@ -1,12 +1,13 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const Users = require("../controllers/Users");
 
 class JwtToken {
     constructor() {
         this.secret = process.env.JWT_SECRET_KEY;
     }
 
-    handle(req, res, next) {
+    async handle(req, res, next) {
         var cookies = req.headers.cookie;
         if (!cookies) {
             return this.clearSessionAndRedirect(req, res);
@@ -26,7 +27,12 @@ class JwtToken {
 
         try {
             var decoded = jwt.verify(token, this.secret);
-            req.session.user = decoded.data;
+            const user_data = decoded.data;
+            const user = await Users.checkUserExistsOrNot(user_data.id);
+            if(user == false){
+                return this.clearSessionAndRedirect(req, res);    
+            }
+            req.session.user = user_data;
             // if (!req.session.user.id) {
             //     req.session.user = req.session.user.data;
             // }
