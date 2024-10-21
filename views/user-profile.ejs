@@ -9,6 +9,7 @@
 </head>
 <body>
     <div class="container mt-5">
+        
         <a href="/user/chats" class="btn btn-primary">Back</a>
         <div class="card p-4 text-center">
             <div class="d-flex justify-content-center">
@@ -46,7 +47,9 @@
                 <% break; 
                     }
                 %>
-                <a href="/user/chats/<%= user_circle_record.chat_id %>" class="btn btn-secondary">Chat</a>
+                <% if(is_already_friend === true){ %>
+                    <a href="/user/chats/<%= user_circle_record.chat_id %>" class="btn btn-secondary">Chat</a>
+                <% } %>
                 <!-- <button class="btn btn-success mx-2" id="chatButton">
                     <i class="fas fa-comments"></i> Chat
                 </button> -->

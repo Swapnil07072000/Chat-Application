@@ -125,7 +125,7 @@ UserRequests.init({
         },
     },
     status: {
-        type: DataTypes.ENUM('-1', '0', '1'),
+        type: DataTypes.ENUM('-2','-1', '0', '1'),
         defaultValue: '0',
     },
     published: {

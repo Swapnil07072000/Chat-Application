@@ -33,6 +33,17 @@
             </div>
         </div>
 
+        <!-- Private Chat groups -->
+        <p>Private Chats</p>
+        <ul class="list-group mb-4 p-3">
+            <% private_chat_group_list.forEach(function(group) { %>
+                <% let chat_url = "/user/chats/"+group.chat_id %>
+                <li class="list-group-item">
+                    <a href="<%= chat_url %>" ><%= group.private_chat_name %></a>
+                </li>
+            <% })  %>
+        </ul>
+
         <!-- List of previous chat groups -->
         <p>Your Groups</p>
         <ul class="list-group mb-4 p-3">

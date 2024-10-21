@@ -10,9 +10,11 @@ class ChatGroups extends Model {
           SELECT g.chat_id, g.chat_name FROM chat_groups AS g
           JOIN chats_group_users AS cu
           ON(cu.chat_id = g.chat_id)
-          WHERE cu.user_id = :user_id
+          WHERE g.user_id = :user_id
+          AND g.is_group = '1'
           AND g.published = '1' 
           AND cu.active = '1'
+          GROUP BY g.id
         `,
         {
           replacements: {user_id},
@@ -52,17 +54,22 @@ class ChatGroups extends Model {
     return (result?true:false);
   }
 
-  static async getAllGroup(chat_id_list){
+  static async getAllGroup(chat_id_list, user_id){
     let result = "";
     try{
       let query = "";
-      if(!chat_id_list){
+      // console.log(chat_id_list, chat_id_list.length <= 0);
+      // console.log(user_id);
+      if(!chat_id_list || chat_id_list.length <= 0){
         query = `
           SELECT g.chat_id, g.chat_name FROM chat_groups AS g
-          LEFT JOIN chats_group_users AS cu
+          INNER JOIN chats_group_users AS cu
           ON(cu.chat_id = g.chat_id)
           AND g.published = '1' 
+          AND g.is_group = '1'
+          AND cu.user_id != ${user_id}
           AND cu.active = '1'
+          GROUP BY g.id
         ` ;
       }else{
         const chat_ids = "'"+chat_id_list.join("','")+"'";
@@ -72,7 +79,8 @@ class ChatGroups extends Model {
           ON(cu.chat_id = g.chat_id AND cu.active = '1')
           WHERE g.chat_id NOT IN (${chat_ids})
           AND g.published = '1' 
-          
+          AND g.is_group = '1'
+          GROUP BY g.id
         ` ;
       }
       
@@ -88,6 +96,36 @@ class ChatGroups extends Model {
     }
     return result;
     
+  }
+
+  static async getPrivateChatGroups(user_id){
+    let result = "";
+    try {
+      let query = "";
+      query = `
+        SELECT g.chat_id, g.chat_name, GROUP_CONCAT(u.username SEPARATOR ',') AS private_chat_name 
+        FROM chat_groups AS g
+        INNER JOIN chats_group_users AS cu
+        ON(cu.chat_id = g.chat_id)
+        INNER JOIN users AS u
+        ON(u.id = cu.user_id)
+        AND g.published = '1'
+        AND u.active = '1' 
+        AND g.is_group = '0'
+        AND cu.user_id != ${user_id}
+        AND cu.active = '1'
+        GROUP BY g.id
+      ` ;
+      result = await sequelize.query(query,
+        {
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );
+      // console.log(result);
+    } catch (error) {
+      return error;
+    }
+    return result;
   }
 }
 

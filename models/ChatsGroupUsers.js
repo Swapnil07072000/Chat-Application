@@ -6,24 +6,88 @@ class ChatsGroupUsers extends Model {
   static async getChatRecords(user_id, chat_id){
     let result = "";
     try{
+      let query = "";
+      query = `
+        SELECT g.chat_name FROM chat_groups AS g 
+        WHERE g.chat_id = '${chat_id}'
+        AND g.published = '1'
+      `;
       result = await sequelize.query(
-        `
-          SELECT g.chat_name FROM chat_groups AS g 
-          WHERE g.chat_id = :chat_id
-          AND g.published = '1'
-        `,
+        query,
         {
-          replacements: {chat_id},
           type: Sequelize.QueryTypes.SELECT,
         }
-      );  
+      );
+      if(result.is_group == '1'){
+        result = await sequelize.query(
+          `
+            SELECT g.chat_name FROM chat_groups AS g 
+            WHERE g.chat_id = :chat_id
+            AND g.published = '1'
+          `,
+          {
+            replacements: {chat_id},
+            type: Sequelize.QueryTypes.SELECT,
+          }
+        );
+      }else{
+        result = await sequelize.query(
+          `
+            SELECT GROUP_CONCAT(u.username SEPARATOR ',') 
+            FROM chat_groups AS g
+            INNER JOIN chats_group_users AS cu
+            ON(cu.chat_id = g.chat_id)
+            INNER JOIN users AS u
+            ON(u.id = cu.user_id) 
+            WHERE g.chat_id = :chat_id
+            AND cu.user_id != :user_id
+            AND g.published = '1'
+            AND cu.active = '1'
+            AND u.active = '1'
+            GROUP BY g.id
+          `,
+          {
+            replacements: {chat_id, user_id},
+            type: Sequelize.QueryTypes.SELECT,
+          }
+        );
+      }
+        
       // console.log(result);
       return result;
     }catch(error){
+      console.log(error);
       return error;
     } 
   }
   
+  static async isUserAlreadyPresentInGroup(user_id, chat_id){
+    let result = "";
+    try {
+      // console.log(user_id, chat_id);
+      let query = "";
+      query = `
+        SELECT cgu.* FROM chats_group_users AS cgu
+        WHERE cgu.chat_id = '${chat_id}'
+        AND cgu.user_id = ${user_id}
+      `;
+      // console.log(query);
+      result = await sequelize.query(
+        query,
+        {
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );
+      
+    } catch (error) {
+      return [true, false, error];
+    }
+    // console.log(result);
+    // let is_present = true;
+    let is_present = (result.length > 0)?true:false;
+    // console.log(result.length);
+    return [false, is_present, result];
+  }
 
 }
 

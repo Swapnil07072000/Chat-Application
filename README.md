@@ -38,7 +38,8 @@ Before this implement this
 Note: We have to ensure that if they break their freindship then those records also we should have, and a new chat records between those users will be created.
 2. When accepted then directly make any entry in chats_groups table, for this create a flag of is_group something like this. -> Pending
 3. After this if user want to make private chat with that user in his/her friend circle then show a button which will open that 
-	chat group -> Pending
+	chat group -> Done
+-> Separate the groups created by me and subcripted and non-subsribted groups -> after this pick up other tasks
 4. Give a dropdown in both while creating a group and while creating a users-only private group, the list of users in dropdown is his/her 
 	circle. -> Pending.
 5. While creating a users-only group if those users group already exists then redirect then to that group page with loaded messages. -> Pending

@@ -14,6 +14,8 @@ class Chats{
         //
         // this.init();
         // this.acceptRequest = this.acceptRequest.bind(this);
+        this.valid_actions = ["accept", "reject", "cancel"];
+        this.valid_actions_status = ['-1', '1', '-2'];
     }
 
     //Get All the groups
@@ -27,9 +29,12 @@ class Chats{
         // console.log(user_id);
         const [chat_id_list, all_groups_list] = await chatgroups.getAllGroupForUser(user_id);
         // console.log(all_groups_list, chat_id_list);
-        const other_groups_list = await chatgroups.getAllGroup(chat_id_list);
-        // console.log(other_groups_list);
-        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list, user: user}); 
+        const other_groups_list = await chatgroups.getAllGroup(chat_id_list, user_id);
+        console.log(other_groups_list);
+        const private_chat_list = await chatgroups.getPrivateChatGroups(user_id);
+        // console.log({groups: all_groups_list, other_groups: other_groups_list, user: user});
+        // console.log(private_chat_list);
+        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list, private_chat_group_list: private_chat_list, user: user}); 
     }
 
     //Group Creation
@@ -105,10 +110,27 @@ class Chats{
             if(!is_valid){
                 return res.json({"error":"No such chat group exists"});    
             }
-            const join_user = await chatsgroupusers.create({chat_id, user_id});
+            // console.log("BB");
+            const [is_error, is_already_present_in_group, result] = await chatsgroupusers.isUserAlreadyPresentInGroup(user_id, chat_id);
+            // console.log(is_error);
+            // console.log("BB");
+            if(is_error){
+                throw result;
+            }
+            // console.info(is_already_present_in_group);
+            if(is_already_present_in_group){
+                // res.redirect("/user/chats");
+                return res.json({"error":"User already present in this group"});
+            }
+            // console.log("A");
+            if(!is_already_present_in_group){
+                const join_user = await chatsgroupusers.create({chat_id, user_id});
+            }
+            
             // res.redirect("chats");
             res.redirect("/user/chats");
         }catch(error){
+            // console.log(error);
             return res.json({"error":"Error faced while fetching the chats"});
         }
     }
@@ -175,26 +197,36 @@ class Chats{
     //Perform action on user request
     actionOnRequest = async (req, res)=>{
         const {requestId} = req.body;
-        const {action} = req.params;
+        var {actionType} = req.params;
+        const action =  (actionType.trim()).toLowerCase();
         // console.log(action, requestId);
+        const curr_user = req.session.user;
         try{
             const request = await userrequests.findOne({where: {request_id: requestId, published: '1'}});
+            // console.log(request);
             if(!request){
                 let response = {"httpCode": 403, "httpMessage": "Request ID is invalid"};
                 return res.json(response);
             }
-            let valid_actions = ["accept", "reject"];
-            if(!valid_actions.includes(action)){
+            // const valid_actions = ["accept", "reject", "cancel"];
+            if(!this.valid_actions.includes(action)){
                 let response = {"httpCode": 500, "httpMessage": "Action is not valid"};
+                return res.json(response);
+            }
+            if(this.valid_actions_status.includes(request.status)){
+                let response = {"httpCode": 500, "httpMessage": "Action has already been performed on these request"};
                 return res.json(response);
             }
             let response = {}, is_error = false;
             switch(action){
-                case "accept":
-                    [is_error, response] = await this.acceptRequest(requestId);
+                case "accept": //1
+                    [is_error, response] = await this.acceptRequest(requestId, curr_user);
                 break;
-                case "reject":
-                    [is_error, response] = await this.rejectRequest(requestId);
+                case "reject": //-1
+                    [is_error, response] = await this.rejectRequest(requestId, curr_user);
+                break;
+                case "cancel": //-2
+                    [is_error, response] = await this.cancelRequest(requestId, curr_user);
                 break;
             }
             if(is_error){
@@ -205,14 +237,14 @@ class Chats{
             return res.json(response);
             
         }catch(error){
-            console.log(error);
+            // console.log(error);
             let response = {"httpCode": 500, "httpMessage": "Error performing the action"};
             return res.json(response);
         }
     }
 
-    //Accept-Request
-    async acceptRequest(requestId){
+    //Accept-Request -> 1
+    async acceptRequest(requestId, curr_user){
         
         try{
             const request = await userrequests.findOne({where: {request_id: requestId, published: '1'}});
@@ -221,6 +253,12 @@ class Chats{
                 let response = {"httpCode": 403, "httpMessage": "Request ID is invalid"};
                 return [true, response];
             }
+            // console.log(request.status);
+            if(this.valid_actions_status.includes(request.status)){
+                let response = {"httpCode": 500, "httpMessage": "Action has already been performed on these request"};
+                return [true, response];
+            }
+            console.log("A");
             //First accept the tranction/request
             let request_data = JSON.parse(request.request_data);
             // console.log(request_data.request_user_from);  
@@ -263,13 +301,17 @@ class Chats{
         }
     }
 
-    //Reject Request
-    async rejectRequest(requestId){
+    //Reject Request -> -1
+    async rejectRequest(requestId, curr_user){
         try {
             const request = await userrequests.findOne({where: {request_id: requestId, published: '1'}});
             // console.log(request);
             if(!request){
                 let response = {"httpCode": 403, "httpMessage": "Request ID is invalid"};
+                return [true, response];
+            }
+            if(this.valid_actions_status.includes(request.status)){
+                let response = {"httpCode": 500, "httpMessage": "Action has already been performed on these request"};
                 return [true, response];
             }
             let request_data = JSON.parse(request.request_data);
@@ -283,6 +325,40 @@ class Chats{
         } catch (error) {
             console.log(error);
             let response = {"httpCode": 500, "httpMessage": "Reject action cannot be performed"};
+            return [true, response];
+        }
+    }
+
+    //Cancel Request -> -2
+    async cancelRequest(requestId, curr_user){
+        try {
+            const request = await userrequests.findOne({where: {request_id: requestId, published: '1'}});
+            // console.log(request, requestId);
+            if(!request){
+                let response = {"httpCode": 403, "httpMessage": "Request ID is invalid"};
+                return [true, response];
+            }
+            if(this.valid_actions_status.includes(request.status)){
+                let response = {"httpCode": 500, "httpMessage": "Action has already been performed on these request"};
+                return [true, response];;
+            }
+            let request_data = JSON.parse(request.request_data);
+            const user_id = request_data.request_user_from;
+            // console.log(user_id, curr_user.id);
+            if(user_id != curr_user.id){
+                let response = {"httpCode": 403, "httpMessage": "This friend request was not send by you."};
+                return [true, response];
+            }
+            await userrequests.update(
+                {status: '-2', request_last_action_by:user_id},
+                {where: {request_id: requestId}}
+            )
+            .catch((error)=>{throw error;});
+            let response = {"httpCode": 200, "httpMessage": "Reject action performed successfully"};
+            return [false, response];
+        } catch (error) {
+            console.log(error);
+            let response = {"httpCode": 500, "httpMessage": "Cancel action cannot be performed"};
             return [true, response];
         }
     }
