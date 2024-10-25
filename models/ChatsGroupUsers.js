@@ -8,9 +8,10 @@ class ChatsGroupUsers extends Model {
     try{
       let query = "";
       query = `
-        SELECT g.chat_name FROM chat_groups AS g 
+        SELECT g.chat_name, g.is_group FROM chat_groups AS g 
         WHERE g.chat_id = '${chat_id}'
         AND g.published = '1'
+        LIMIT 1
       `;
       result = await sequelize.query(
         query,
@@ -18,7 +19,8 @@ class ChatsGroupUsers extends Model {
           type: Sequelize.QueryTypes.SELECT,
         }
       );
-      if(result.is_group == '1'){
+      // console.log(result[0].is_group);
+      if(result[0].is_group == 1){
         result = await sequelize.query(
           `
             SELECT g.chat_name FROM chat_groups AS g 
@@ -70,6 +72,7 @@ class ChatsGroupUsers extends Model {
         SELECT cgu.* FROM chats_group_users AS cgu
         WHERE cgu.chat_id = '${chat_id}'
         AND cgu.user_id = ${user_id}
+        AND cgu.active = '1'
       `;
       // console.log(query);
       result = await sequelize.query(

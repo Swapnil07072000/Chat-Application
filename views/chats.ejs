@@ -11,7 +11,14 @@
 </head>
 <body>
     <div class="container mt-5">
-        
+        <% if(messages.error){ %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= messages.error %>
+                <button type="button" class="btn" align="right" data-bs-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <% } %> 
         <h2>Chat Groups</h2>
         <!-- User Dropdown Menu -->
         <div class="d-flex justify-content-between mb-3">
@@ -64,8 +71,14 @@
                         let join_url = "/user/chatjoin/"+othergroup.chat_id; 
                     %>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="<%= chat_url %>" ><%= othergroup.chat_name %></a>
-                        <a class="btn btn-primary" href="<%= join_url %>">Join Chat</a>
+                        <% if(othergroup.is_present_in_group == 1){ %>
+                            <a href="<%= chat_url %>" ><%= othergroup.chat_name %></a>
+                        <% }else{ %>
+                            <span><%= othergroup.chat_name %></span>
+                        <% } %>
+                        <% if(othergroup.is_present_in_group == 0){ %>
+                            <a class="btn btn-primary" href="<%= join_url %>">Join Chat</a>
+                        <% } %>
                     </li>
                 <% })  %>
             <% } %>

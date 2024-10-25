@@ -62,19 +62,29 @@ class ChatGroups extends Model {
       // console.log(user_id);
       if(!chat_id_list || chat_id_list.length <= 0){
         query = `
-          SELECT g.chat_id, g.chat_name FROM chat_groups AS g
+          SELECT g.chat_id, g.chat_name,
+          MAX(CASE 
+            WHEN cu.user_id = ${user_id} THEN '1'
+            ELSE '0'
+          END) AS 'is_present_in_group' 
+          FROM chat_groups AS g
           INNER JOIN chats_group_users AS cu
           ON(cu.chat_id = g.chat_id)
           AND g.published = '1' 
           AND g.is_group = '1'
-          AND cu.user_id != ${user_id}
+          AND g.user_id != ${user_id}
           AND cu.active = '1'
           GROUP BY g.id
         ` ;
       }else{
         const chat_ids = "'"+chat_id_list.join("','")+"'";
         query = `
-          SELECT g.chat_id, g.chat_name FROM chat_groups AS g
+          SELECT g.chat_id, g.chat_name,
+          MAX(CASE 
+            WHEN cu.user_id = ${user_id} THEN '1'
+            ELSE '0'
+          END) AS 'is_present_in_group' 
+          FROM chat_groups AS g
           LEFT JOIN chats_group_users AS cu
           ON(cu.chat_id = g.chat_id AND cu.active = '1')
           WHERE g.chat_id NOT IN (${chat_ids})

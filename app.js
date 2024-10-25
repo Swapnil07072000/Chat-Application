@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const RedisStore = require("connect-redis").default;
 // const redis = require('redis');
 const path = require("path");
+const flash = require('express-flash')
 
 const router = require("./routes/routes");
 const sequelize = require('./config/db');
@@ -90,7 +91,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(flash());
 
 
 

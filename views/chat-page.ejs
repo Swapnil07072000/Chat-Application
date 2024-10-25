@@ -75,11 +75,14 @@
         <div class="message-list" id="message-list">
         </div>
 
-        <!-- Message Input -->
-        <form id="chat-form" class="d-flex">
-            <input type="text" class="form-control me-2" id="message" placeholder="Type your message here..." required>
-            <button type="submit" class="btn btn-primary">Send</button>
-        </form>
+        <% if(is_present_in_group == 1){ %>
+            <!-- Message Input -->
+            <form id="chat-form" class="d-flex">
+                
+                <input type="text" class="form-control me-2" id="message" placeholder="Type your message here..." required>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        <% } %>
     </div>
 </div>
 

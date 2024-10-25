@@ -28,9 +28,9 @@ class Chats{
         // console.log(chatsgroupusers);
         // console.log(user_id);
         const [chat_id_list, all_groups_list] = await chatgroups.getAllGroupForUser(user_id);
-        // console.log(all_groups_list, chat_id_list);
+        // console.log(all_groups_list);
         const other_groups_list = await chatgroups.getAllGroup(chat_id_list, user_id);
-        console.log(other_groups_list);
+        // console.log(other_groups_list);
         const private_chat_list = await chatgroups.getPrivateChatGroups(user_id);
         // console.log({groups: all_groups_list, other_groups: other_groups_list, user: user});
         // console.log(private_chat_list);
@@ -89,13 +89,30 @@ class Chats{
             if(!is_valid){
                 return res.json({"error":"No such chat group exists"});    
             }
+            const [is_error, is_present, result] = await chatsgroupusers.isUserAlreadyPresentInGroup(user_id, chat_id);
+            // console.log(is_error, is_present, result);
+            // console.log("a");
+            if(is_error){
+                return res.json({"error":"Something went wrong."});
+            }
+            if(!is_present){
+                req.flash("error", "You are not the memeber of this group. Please first join this group.");
+                return res.redirect("/user/chats");
+            }
             const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
             // console.log(is_valid);
-            // console.log(chat_records[0].chat_name);
+            // console.log(chat_records);
             // console.log(chat_records.chat_name);
-            res.render("chat-page", {"chat_group_name":chat_records[0].chat_name, "user": user});
+            const chat_data = {
+                "chat_group_name":chat_records[0].chat_name, 
+                "user": user,
+                "is_present_in_group": is_present,
+            };
+            // console.log(chat_data);
+            res.render("chat-page", chat_data);
             // const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
         }catch(error){
+            console.error(error);
             return res.json({"error":"Error faced while fetching the chats"});
         }
     }
