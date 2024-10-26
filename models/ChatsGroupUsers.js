@@ -5,6 +5,7 @@ class ChatsGroupUsers extends Model {
   
   static async getChatRecords(user_id, chat_id){
     let result = "";
+    let is_group = false;
     try{
       let query = "";
       query = `
@@ -19,11 +20,13 @@ class ChatsGroupUsers extends Model {
           type: Sequelize.QueryTypes.SELECT,
         }
       );
+      
       // console.log(result[0].is_group);
       if(result[0].is_group == 1){
+        is_group = true;
         result = await sequelize.query(
           `
-            SELECT g.chat_name FROM chat_groups AS g 
+            SELECT g.chat_name, g.chat_description FROM chat_groups AS g 
             WHERE g.chat_id = :chat_id
             AND g.published = '1'
           `,
@@ -35,7 +38,8 @@ class ChatsGroupUsers extends Model {
       }else{
         result = await sequelize.query(
           `
-            SELECT GROUP_CONCAT(u.username SEPARATOR ',') 
+            SELECT 
+            GROUP_CONCAT(u.username SEPARATOR ',') AS chat_name
             FROM chat_groups AS g
             INNER JOIN chats_group_users AS cu
             ON(cu.chat_id = g.chat_id)
@@ -56,10 +60,10 @@ class ChatsGroupUsers extends Model {
       }
         
       // console.log(result);
-      return result;
+      return [false, result, is_group];
     }catch(error){
-      console.log(error);
-      return error;
+      // console.log(error);
+      return [true, error, is_group];
     } 
   }
   
@@ -90,6 +94,36 @@ class ChatsGroupUsers extends Model {
     let is_present = (result.length > 0)?true:false;
     // console.log(result.length);
     return [false, is_present, result];
+  }
+
+  static async getChatGroupUsersList(user_id, chat_id){
+    let result = "";
+    try {
+      let query = "";
+      query = `
+        SELECT u.id, u.username, 
+        CASE
+          WHEN cgu.user_id = ${user_id} THEN '1'
+          ELSE '0'
+        END  AS 'is_self'
+        FROM chats_group_users AS cgu
+        JOIN users AS u 
+        ON (cgu.user_id = u.id)
+        WHERE cgu.chat_id = '${chat_id}'
+        AND cgu.active = '1'
+        ORDER BY u.username ASC
+      `;
+      result = await sequelize.query(
+        query,
+        {
+          type: Sequelize.QueryTypes.SELECT,
+        }
+      );
+      
+    } catch (error) {
+      return [true, false, error];
+    }
+    return [false, result];
   }
 
 }

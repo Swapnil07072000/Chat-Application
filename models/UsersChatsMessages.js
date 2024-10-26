@@ -43,6 +43,7 @@ class UsersChatsMessages extends Model {
       ind_record.message = decryptedText;
       ind_record.user_id = per_record.user_id;
       ind_record.self = (per_record.user_id == user_id)?true:false;
+      ind_record.created_on = ((new Date(per_record.created_at)).toUTCString().replace(' GMT', ''));
       processed_chat_records.push(ind_record);
     });
     return processed_chat_records;

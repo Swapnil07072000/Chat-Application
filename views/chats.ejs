@@ -19,72 +19,82 @@
                 </button>
             </div>
         <% } %> 
-        <h2>Chat Groups</h2>
-        <!-- User Dropdown Menu -->
-        <div class="d-flex justify-content-between mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-                Create New Group
-            </button>
 
-            <!-- User Profile Icon with Dropdown -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <!-- Font Awesome user icon -->
-                    <i class="fas fa-user-circle fa-lg"></i>
-                    <span><%= user.username %></span>
+        <!-- Title and Action Buttons -->
+        <div class="d-flex justify-content-between mb-3 align-items-center">
+            <h2>Chat Groups</h2>
+            <div>
+                <!-- Create New Group Button -->
+                <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                    Create New Group
                 </button>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                    <a class="dropdown-item" href="/user/friend-requests">Friend Requests</a>
-                    <a class="dropdown-item" href="/user/logout">Logout</a>
+
+                <!-- User Profile Dropdown -->
+                <div class="dropdown d-inline">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                        <span><%= user.username %></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="/user/friend-requests">Friend Requests</a>
+                        <a class="dropdown-item" href="/user/logout">Logout</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Private Chat groups -->
-        <p>Private Chats</p>
-        <ul class="list-group mb-4 p-3">
-            <% private_chat_group_list.forEach(function(group) { %>
-                <% let chat_url = "/user/chats/"+group.chat_id %>
-                <li class="list-group-item">
-                    <a href="<%= chat_url %>" ><%= group.private_chat_name %></a>
-                </li>
-            <% })  %>
-        </ul>
+        <!-- Chat Groups Sections in Horizontal Layout -->
+        <div class="row">
+            <!-- Private Chats Section -->
+            <div class="col-md-4">
+                <h5 class="mb-3">Private Chats</h5>
+                <ul class="list-group">
+                    <% private_chat_group_list.forEach(function(group) { %>
+                        <% let chat_url = "/user/chats/" + group.chat_id %>
+                        <li class="list-group-item">
+                            <a href="<%= chat_url %>"><%= group.private_chat_name %></a>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
 
-        <!-- List of previous chat groups -->
-        <p>Your Groups</p>
-        <ul class="list-group mb-4 p-3">
-            <% groups.forEach(function(group) { %>
-                <% let chat_url = "/user/chats/"+group.chat_id %>
-                <li class="list-group-item">
-                    <a href="<%= chat_url %>" ><%= group.chat_name %></a>
-                </li>
-            <% })  %>
-        </ul>
+            <!-- Your Groups Section -->
+            <div class="col-md-4">
+                <h5 class="mb-3">Your Groups</h5>
+                <ul class="list-group">
+                    <% groups.forEach(function(group) { %>
+                        <% let chat_url = "/user/chats/" + group.chat_id %>
+                        <li class="list-group-item">
+                            <a href="<%= chat_url %>"><%= group.chat_name %></a>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
 
-        <p>Other Groups</p>
-        <ul class="list-group">
-            <% if(other_groups){ %>
-                <% other_groups.forEach(function(othergroup) { %>
-                    <% 
-                        let chat_url = "/user/chats/"+othergroup.chat_id;
-                        let join_url = "/user/chatjoin/"+othergroup.chat_id; 
-                    %>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <% if(othergroup.is_present_in_group == 1){ %>
-                            <a href="<%= chat_url %>" ><%= othergroup.chat_name %></a>
-                        <% }else{ %>
-                            <span><%= othergroup.chat_name %></span>
-                        <% } %>
-                        <% if(othergroup.is_present_in_group == 0){ %>
-                            <a class="btn btn-primary" href="<%= join_url %>">Join Chat</a>
-                        <% } %>
-                    </li>
-                <% })  %>
-            <% } %>
-        </ul>
+            <!-- Other Groups Section -->
+            <div class="col-md-4">
+                <h5 class="mb-3">Other Groups</h5>
+                <ul class="list-group">
+                    <% if (other_groups) { %>
+                        <% other_groups.forEach(function(othergroup) { %>
+                            <% let chat_url = "/user/chats/" + othergroup.chat_id; let join_url = "/user/chatjoin/" + othergroup.chat_id %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <% if (othergroup.is_present_in_group == 1) { %>
+                                    <a href="<%= chat_url %>"><%= othergroup.chat_name %></a>
+                                <% } else { %>
+                                    <span><%= othergroup.chat_name %></span>
+                                <% } %>
+                                <% if (othergroup.is_present_in_group == 0) { %>
+                                    <a class="btn btn-primary btn-sm" href="<%= join_url %>">Join Chat</a>
+                                <% } %>
+                            </li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
 
-        <!-- Modal for creating a new group -->
+        <!-- Modal for Creating a New Group -->
         <div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -93,7 +103,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="createGroupForm" class="form">
+                        <form id="createGroupForm">
                             <div class="mb-3">
                                 <label for="groupName" class="form-label">Group Name</label>
                                 <input type="text" name="groupName" id="groupName" class="form-control" required>
@@ -110,7 +120,6 @@
                 </div>
             </div>
         </div>
-        
     </div>
 
     <!-- Include jQuery and Bootstrap JS -->

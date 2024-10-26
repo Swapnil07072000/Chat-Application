@@ -66,16 +66,26 @@ class ChatGroups extends Model {
           MAX(CASE 
             WHEN cu.user_id = ${user_id} THEN '1'
             ELSE '0'
-          END) AS 'is_present_in_group' 
+          END) AS 'is_present_in_group',
+          MAX(CASE 
+            WHEN ((uc.friend_user_id = g.user_id) OR (uc.user_id = g.user_id)) THEN '1'
+            ELSE '0'
+          END) AS 'is_in_my_circle' 
           FROM chat_groups AS g
           INNER JOIN chats_group_users AS cu
           ON(cu.chat_id = g.chat_id)
+          LEFT JOIN users_circle AS uc
+          ON(
+            ((uc.friend_user_id = g.user_id) OR (uc.user_id = g.user_id))
+            AND uc.active = '1'
+            )
           AND g.published = '1' 
           AND g.is_group = '1'
           AND g.user_id != ${user_id}
           AND cu.active = '1'
           GROUP BY g.id
         ` ;
+        // console.info(query);
       }else{
         const chat_ids = "'"+chat_id_list.join("','")+"'";
         query = `
@@ -113,19 +123,22 @@ class ChatGroups extends Model {
     try {
       let query = "";
       query = `
-        SELECT g.chat_id, g.chat_name, GROUP_CONCAT(u.username SEPARATOR ',') AS private_chat_name 
+        SELECT g.chat_id, 
+        g.chat_name, 
+        GROUP_CONCAT(u.username SEPARATOR ',') AS private_chat_name 		
         FROM chat_groups AS g
         INNER JOIN chats_group_users AS cu
-        ON(cu.chat_id = g.chat_id)
+        ON(cu.chat_id = g.chat_id AND cu.user_id = ${user_id})
         INNER JOIN users AS u
         ON(u.id = cu.user_id)
         AND g.published = '1'
         AND u.active = '1' 
         AND g.is_group = '0'
-        AND cu.user_id != ${user_id}
+        #AND cu.user_id != ${user_id}
         AND cu.active = '1'
         GROUP BY g.id
       ` ;
+      console.info(query);
       result = await sequelize.query(query,
         {
           type: Sequelize.QueryTypes.SELECT,
@@ -137,6 +150,8 @@ class ChatGroups extends Model {
     }
     return result;
   }
+
+  
 }
 
 ChatGroups.init(

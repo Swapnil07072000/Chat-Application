@@ -34,7 +34,15 @@ class Chats{
         const private_chat_list = await chatgroups.getPrivateChatGroups(user_id);
         // console.log({groups: all_groups_list, other_groups: other_groups_list, user: user});
         // console.log(private_chat_list);
-        res.render("chats", {groups: all_groups_list, other_groups: other_groups_list, private_chat_group_list: private_chat_list, user: user}); 
+        // "groups_from_my_circle": [],
+        
+        const chats = {
+            groups: all_groups_list, 
+            other_groups: other_groups_list, 
+            private_chat_group_list: private_chat_list, 
+            user: user,
+        };
+        res.render("chats", chats); 
     }
 
     //Group Creation
@@ -93,20 +101,34 @@ class Chats{
             // console.log(is_error, is_present, result);
             // console.log("a");
             if(is_error){
-                return res.json({"error":"Something went wrong."});
+                req.flash("error", "Something went wrong.");
+                return res.redirect("/user/chats");
             }
             if(!is_present){
                 req.flash("error", "You are not the memeber of this group. Please first join this group.");
                 return res.redirect("/user/chats");
             }
-            const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
+            const [is_chat_record_error, chat_records, is_group] = await chatsgroupusers.getChatRecords(user_id, chat_id);
+            if(is_chat_record_error){
+                req.flash("error", "Error in reteriving the records.");
+                return res.redirect("/user/chats");
+            }
+            const [is_chat_error, chat_users_list] = await chatsgroupusers.getChatGroupUsersList(user_id, chat_id);
+            if(is_chat_error){
+                req.flash("error", "Something went wrong.");
+                return res.redirect("/user/chats");
+            }
             // console.log(is_valid);
             // console.log(chat_records);
             // console.log(chat_records.chat_name);
+            // console.log(chat_users_list);
             const chat_data = {
                 "chat_group_name":chat_records[0].chat_name, 
+                "group_description": chat_records[0].chat_description,
                 "user": user,
                 "is_present_in_group": is_present,
+                "chat_group_users_list": chat_users_list,
+                "is_group": is_group,
             };
             // console.log(chat_data);
             res.render("chat-page", chat_data);
