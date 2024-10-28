@@ -25,6 +25,7 @@ class MessageWorker{
 
     async setUpSubscriber() {
         try{
+            
             await this.setUpRedisConnection();
             this.redisClient.subscribe("chat_messages", async (message) => {
                 const messageData = JSON.parse(message);     
@@ -34,15 +35,15 @@ class MessageWorker{
                     // Save the message to the database
                     const message_id = uuidv4();
                     const cryptoInstance = new CryptoService();
-                    console.log(messageData.message);
+                    // console.log(messageData.message);
                     const encryptedText = cryptoInstance.encrypt(messageData.message);
                     await userschatsmessages.create({
                         message_id: message_id,
                         chat_id: messageData.roomID,
                         user_id: messageData.user_id,
                         message: encryptedText,
-                    });
-                    // console.log("A");
+                    })
+                    
                 } catch (error) {
                     console.error('Error saving message of Redis subscriber:', error);
                 }

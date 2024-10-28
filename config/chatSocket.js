@@ -26,7 +26,9 @@ class ChatSocket {
         this.handleMessage(socket);
         
         this.getChatGroupData(socket)
-
+        socket.on("ping", ()=>{
+          socket.emit("pong");
+        })
         // Handle disconnection
         socket.on('disconnect', () => {
           console.log('A user disconnected');
@@ -48,6 +50,16 @@ class ChatSocket {
 
     // Handle incoming chat messages
     handleMessage(socket) {
+      const options = {  
+        weekday: "short", year: "numeric", month: "short",  
+        day: "numeric", 
+        hour: "2-digit", minute: "2-digit"  
+      };
+      const display_options = {  
+        // weekday: "short", year: "numeric", month: "short",  
+        // day: "numeric", 
+        hour: "2-digit", minute: "2-digit"  
+      };
       socket.on('chat message', async(msg) => {
         console.log('Message '+msg.message+' to room ' + msg.roomID);
         // const msg_result = {};
@@ -60,6 +72,10 @@ class ChatSocket {
             const user = await users.findOne({where: {id: user_id}}); 
             // console.log(msg);
             msg.chat_of_user = user.username;
+            msg.chat_id = msg.roomID;
+            msg.message_id = null;
+            msg.created_on = ((new Date()).toLocaleTimeString(undefined, options));
+            msg.timestamps = ((new Date()).toLocaleTimeString(undefined, display_options));
             this.io.to(msg.roomID).emit('chat message', msg);
             // getChatGroupData(socket, msg.roomID, msg.user_id);
           }catch(error){

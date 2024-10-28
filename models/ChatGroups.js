@@ -138,7 +138,7 @@ class ChatGroups extends Model {
         AND cu.active = '1'
         GROUP BY g.id
       ` ;
-      console.info(query);
+      // console.info(query);
       result = await sequelize.query(query,
         {
           type: Sequelize.QueryTypes.SELECT,

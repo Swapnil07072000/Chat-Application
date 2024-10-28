@@ -10,16 +10,21 @@ class UsersChatsMessages extends Model {
     // const chat_records = await userschatsmessages.findAll({where: {chat_id: chat_id, published: '1'} });
     let chat_records = "";
     let limit = process.env.CHAT_MESSAGE_LIMIT;
+    let edit_timeout = process.env.MSG_EDIT_TIMEOUT;
+    let delete_timeout = process.env.MSG_DELETE_TIMEOUT;
     if(!limit) limit = 50;
     limit = parseInt(limit);
     try{
       chat_records = await sequelize.query(
         `
-          SELECT g.*, u.username FROM users_chats_messages AS g
+          SELECT 
+          g.*, u.username 
+          FROM users_chats_messages AS g
           LEFT JOIN users AS u
           ON (g.user_id = u.id)
           WHERE g.chat_id = :chat_id
           AND g.published = '1'
+          ORDER BY id DESC
           LIMIT :limit
         `,
         {
@@ -34,19 +39,41 @@ class UsersChatsMessages extends Model {
     // console.log(chat_records);
     var processed_chat_records = [];
     const cryptoInstance = new CryptoService();
+    const options = {  
+      weekday: "short", year: "numeric", month: "short",  
+      day: "numeric", 
+      hour: "2-digit", minute: "2-digit"  
+    };
+    const display_options = {  
+      // weekday: "short", year: "numeric", month: "short",  
+      // day: "numeric", 
+      hour: "2-digit", minute: "2-digit"  
+    };
     chat_records.forEach((per_record)=>{
       // console.log(per_record);
       let ind_record = {};
       ind_record.chat_of_user = per_record.username;
       ind_record.chat_id = per_record.chat_id;
+      if(per_record.user_id == user_id){
+        ind_record.message_id = per_record.message_id;
+      }else ind_record.message_id = null;
       let decryptedText = cryptoInstance.decrypt(per_record.message);
       ind_record.message = decryptedText;
       ind_record.user_id = per_record.user_id;
       ind_record.self = (per_record.user_id == user_id)?true:false;
-      ind_record.created_on = ((new Date(per_record.created_at)).toUTCString().replace(' GMT', ''));
+      let timeout_mins = ((new Date())-(new Date(per_record.created_at)))/(1000*60);
+      // console.log(timeout_mins);
+      if(timeout_mins <= edit_timeout){
+        ind_record.allow_edit = true;
+      }
+      if(timeout_mins <= delete_timeout){
+        ind_record.allow_delete = true;
+      }
+      ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+      ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
       processed_chat_records.push(ind_record);
     });
-    return processed_chat_records;
+    return processed_chat_records.reverse();
   }
 }
 
