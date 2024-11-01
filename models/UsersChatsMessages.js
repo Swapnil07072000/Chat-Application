@@ -6,7 +6,7 @@ const CryptoService = require("../config/encryptdecrypt");
 
 class UsersChatsMessages extends Model {
 
-  static async getChatMessagesFromChatID(chat_id, user_id){
+  static async getChatMessagesFromChatID(chat_id, user_id, message_id=null){
     // const chat_records = await userschatsmessages.findAll({where: {chat_id: chat_id, published: '1'} });
     let chat_records = "";
     let limit = process.env.CHAT_MESSAGE_LIMIT;
@@ -15,28 +15,45 @@ class UsersChatsMessages extends Model {
     if(!limit) limit = 50;
     limit = parseInt(limit);
     try{
-      chat_records = await sequelize.query(
-        `
+      let query = "";
+      if(!message_id){
+        query = `
           SELECT 
           g.*, u.username 
           FROM users_chats_messages AS g
           LEFT JOIN users AS u
           ON (g.user_id = u.id)
-          WHERE g.chat_id = :chat_id
+          WHERE g.chat_id = '${chat_id}'
           AND g.published = '1'
           ORDER BY id DESC
-          LIMIT :limit
-        `,
+          LIMIT ${limit}
+        `;
+      }else{
+        query = `
+          SELECT 
+          g.*, u.username 
+          FROM users_chats_messages AS g
+          LEFT JOIN users AS u
+          ON (g.user_id = u.id)
+          WHERE g.chat_id = '${chat_id}'
+          AND g.published = '1'
+          AND g.message_id = '${message_id}'
+          ORDER BY id DESC
+          LIMIT 1;
+        `
+      }
+      chat_records = await sequelize.query(
+        query,
         {
-          replacements: {chat_id, limit},
           type: Sequelize.QueryTypes.SELECT,
         }
       );
+      // console.log(query, chat_records);
     }catch(error){
       return error;
     }
     
-    // console.log(chat_records);
+    
     var processed_chat_records = [];
     const cryptoInstance = new CryptoService();
     const options = {  
@@ -49,6 +66,7 @@ class UsersChatsMessages extends Model {
       // day: "numeric", 
       hour: "2-digit", minute: "2-digit"  
     };
+    // console.log(chat_records);
     chat_records.forEach((per_record)=>{
       // console.log(per_record);
       let ind_record = {};
@@ -69,8 +87,29 @@ class UsersChatsMessages extends Model {
       if(timeout_mins <= delete_timeout){
         ind_record.allow_delete = true;
       }
-      ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
-      ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+      let created_at_timestamp = new Date(per_record.created_at).toLocaleTimeString(undefined, options);
+      let updated_at_timestamp = new Date(per_record.updated_at).toLocaleTimeString(undefined, options)
+      // console.log(created_at_timestamp, updated_at_timestamp, 
+      //   (created_at_timestamp != updated_at_timestamp), (per_record.created_at != per_record.updated_at));
+      if(created_at_timestamp != updated_at_timestamp){
+        // console.log(per_record.id);
+        if(ind_record.allow_edit == true){
+          ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+          ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+        }else{
+          ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+          ind_record.updated_on = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, options));
+          ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+          ind_record.timestamps_updated = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, display_options));
+        }
+        
+        ind_record.is_edited = true;
+      }else{
+        ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+        ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+        ind_record.is_edited = false;
+      }
+      
       processed_chat_records.push(ind_record);
     });
     return processed_chat_records.reverse();

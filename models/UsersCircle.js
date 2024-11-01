@@ -21,7 +21,7 @@ class UsersCircle extends Model {
             type: Sequelize.QueryTypes.SELECT,
             }
         );  
-        console.log(result);
+        // console.log(result);
         // is_present = (!result)?false:true;
         if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
             is_present = true;

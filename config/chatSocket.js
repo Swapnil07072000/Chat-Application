@@ -5,6 +5,9 @@ const users = require("../models/Users");
 
 
 const userschatsmessages = require("../models/UsersChatsMessages");
+const CryptoService = require("../config/encryptdecrypt");
+
+const { v4: uuidv4 } = require("uuid");
 require("../config/messageWorkerService");
 
 class ChatSocket {
@@ -24,7 +27,7 @@ class ChatSocket {
         this.joinChatGroup(socket);
         // Register event listeners for this socket
         this.handleMessage(socket);
-        
+  
         this.getChatGroupData(socket)
         socket.on("ping", ()=>{
           socket.emit("pong");
@@ -33,7 +36,15 @@ class ChatSocket {
         socket.on('disconnect', () => {
           console.log('A user disconnected');
         });
+        /*
+        this.io.use((socket, next) => {
+          const err = new Error("not authorized");
+          err.data = { content: "Please retry later" }; // additional details
+          next(err);
+        });
+        */  
       });
+      
     }
   
     async  getRedisClient(){
@@ -64,19 +75,23 @@ class ChatSocket {
         console.log('Message '+msg.message+' to room ' + msg.roomID);
         // const msg_result = {};
         if(msg.roomID){
-          // console.log(redisClient);
           try{
-            await this.redisClient.publish("chat_messages", JSON.stringify(msg));
-            const user_id = msg.user_id;
-            // console.log(user_id);
-            const user = await users.findOne({where: {id: user_id}}); 
-            // console.log(msg);
-            msg.chat_of_user = user.username;
-            msg.chat_id = msg.roomID;
-            msg.message_id = null;
-            msg.created_on = ((new Date()).toLocaleTimeString(undefined, options));
-            msg.timestamps = ((new Date()).toLocaleTimeString(undefined, display_options));
-            this.io.to(msg.roomID).emit('chat message', msg);
+            // this.redisClient.publish("chat_messages", JSON.stringify(msg));
+            const message_id = uuidv4();
+            const cryptoInstance = new CryptoService();
+            const encryptedText = cryptoInstance.encrypt(msg.message);
+            const message_data = await userschatsmessages.create({
+                message_id: message_id,
+                chat_id: msg.roomID,
+                user_id: msg.user_id,
+                message: encryptedText,
+            })
+            if(message_data.id > 0){
+              const processed_chat_record = await userschatsmessages.getChatMessagesFromChatID(message_data.chat_id, message_data.user_id, message_data.message_id);
+              // console.log(processed_chat_record);
+              this.io.to(msg.roomID).emit('chat message', processed_chat_record);
+            }
+            
             // getChatGroupData(socket, msg.roomID, msg.user_id);
           }catch(error){
             console.log("Error2: "+error);
@@ -87,6 +102,22 @@ class ChatSocket {
           this.io.emit('chat message', msg.message);
         }
         
+      });
+
+      socket.on('edit message', async(msg) => {
+        try{
+          const cryptoInstance = new CryptoService();
+          const encryptedText = cryptoInstance.encrypt(msg.message);
+          // console.log(encryptedText, msg.message);
+          const update_record = await userschatsmessages.update(
+            {message: encryptedText, updated_at: new Date()},
+            {where: {message_id: msg.message_id}});
+          const processed_chat_record = await userschatsmessages.getChatMessagesFromChatID(msg.roomID, msg.user_id, msg.message_id);
+          // const messageData = await userschatsmessages.findOne({where: {message_id: msg.message_id}});
+          this.io.to(msg.roomID).emit('edit message', processed_chat_record);
+        }catch(error){
+          console.error("Error in updating record: "+error);
+        }
       });
     }
 

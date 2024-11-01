@@ -7,83 +7,7 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="/css/all.min.css">
-    <style>
-        .chat-container {
-            display: flex;
-            height: 100vh;
-        }
-
-        .sidebar {
-            width: 25%;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-right: 1px solid #ddd;
-        }
-
-        .chat-box {
-            width: 75%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-        }
-
-        .message {
-            display: flex;
-            flex-direction: column; /* Stack the username and message vertically */
-            margin: 5px 0; /* Add some spacing between messages */
-            padding: 10px; /* Add padding for a better appearance */
-            max-width: 80%; /* Limit the width */
-            border-radius: 8px; /* Add rounded corners */
-        }
-
-        .message.other {
-            align-self: flex-end; /* Align to the right */
-            background-color: #f8d7da; /* Optional: background color for other messages */
-        }
-
-        .message.user {
-            align-self: flex-start; /* Align to the left for user messages */
-            background-color: transparent; /* No background color for user's messages */
-        }
-
-        .username {
-            font-weight: bold;
-            margin: 5px 0; /* Space between username and message */
-        }
-        
-        #user-list {
-            max-height: 20rem; /* Adjust height as needed */
-            overflow-y:auto;
-        }
-        
-        .timestamp {
-            font-size: 0.8rem;
-            color: #6c757d;
-            text-align: right;
-        }
-        .message-actions {
-            display: none;
-            position: relative; /* Position actions absolutely within the message */
-            top: 10px; /* Adjust as needed */
-            right: 10px; /* Adjust as needed */
-        }
-
-        .message:hover .message-actions {
-            display: flex; /* Show actions on hover */
-        }
-
-        .btn-group {
-            gap: 5px; /* Space between buttons */
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -163,8 +87,8 @@
     const socket = io({
         reconnection: true,
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,   
-        reconnectionDelayMax: 5000
+        reconnectionDelay: 100,   
+        reconnectionDelayMax: 500
     });
     var user_chat_credentials = {};
     var get_messages = false;
@@ -178,22 +102,40 @@
         socket.on("messagesOfChatGroup", (data)=>{
             messages = "";
             messages = data;
-            console.log(messages);
+            // console.log(messages);
             appendMessages(messages);
         });
     });
     setInterval(() => {
-        if(get_messages){
-            socket.emit("getChatGroupMessages", user_chat_credentials);
-            get_messages = false;
-        }
         socket.emit("ping");
         socket.on("pong", ()=>{
             console.log("pong");
         })
+        // socket.connect();
     }, 5000);
-
+    setInterval(()=>{
+        checkValidUpdateDeleteMessages();
+    }, 100);
     
+    function checkValidUpdateDeleteMessages(){
+        jQuery(".user").each(function(){
+            // console.log(jQuery(this));
+            const tmp_div = jQuery(this);
+            const timestamp = jQuery(tmp_div).find("div.timestamp");
+            const timestamp_val = jQuery(timestamp).attr("data-timestamp");
+            const time_diff = (new Date() - new Date(timestamp_val))/(1000*60);
+            const actions_div = jQuery(tmp_div).find("div.message-actions");
+            // console.log(time_diff < 20);
+            if(time_diff > 2){
+                if(jQuery(actions_div).length > 0){
+                    // console.log(jQuery(actions_div).length);
+                    // console.log(time_diff, jQuery(tmp_div).attr("message_id"));
+                    jQuery(actions_div).html("");
+                }
+            }
+        })
+    }
+
     jQuery("#chat-form").on("submit", function(e){
         e.preventDefault();
         const messageInput = document.getElementById('message');
@@ -245,7 +187,8 @@
 
 
 
-    function appendMessages(messages){
+    function appendMessages(messages, message_id_list=[]){
+        // console.log(messages);
         messages.forEach(msg => {   
 
             const messageDate = new Date(msg.created_on).toDateString();
@@ -258,9 +201,11 @@
             
 
             const newMessage = document.createElement('div');
-            newMessage.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other');
+            newMessage.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other', "p-4");
             newMessage.setAttribute('message_id', msg.message_id);
             var username = "";
+            let saveButton = null, cancelButton = null;
+            
             if(msg.user_id != user_id){
                 username = document.createElement('a');
                 username.classList.add('username'); // You can style this class in CSS
@@ -271,15 +216,28 @@
                 actions.classList.add('message-actions', 'btn-group');
                 if(msg.allow_edit){
                     const editButton = document.createElement('button');
-                    editButton.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
+                    editButton.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'edit_action');
                     editButton.innerHTML = '<i class="fas fa-edit"></i>';
                     editButton.onclick = () => editMessage(msg.message_id);
                     actions.appendChild(editButton);
+
+                    saveButton = document.createElement('button');
+                    saveButton.classList.add('btn', 'btn-sm', 'btn-success', 'save_button');
+                    // saveButton.innerHTML = '<i class="fas fa-edit"></i>';
+                    saveButton.innerHTML = "Save"
+                    saveButton.onclick = () => updateMessage(msg.message_id);
+                    actions.appendChild(saveButton);
+                    cancelButton = document.createElement('button');
+                    cancelButton.classList.add('btn', 'btn-sm', 'btn-warning', 'cancel_button');
+                    // cancelButton.innerHTML = '<i class="fas fa-edit"></i>';
+                    cancelButton.innerHTML = "Cancel"
+                    cancelButton.onclick = () => revertChanges(msg.message_id);
+                    actions.appendChild(cancelButton);
                 }
                 
                 if(msg.allow_delete){
                     const deleteButton = document.createElement('button');
-                    deleteButton.classList.add('btn', 'btn-sm', 'btn-outline-danger');
+                    deleteButton.classList.add('btn', 'btn-sm', 'btn-outline-danger', 'delete_action');
                     deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
                     deleteButton.onclick = () => deleteMessage(msg.message_id);
                     actions.appendChild(deleteButton);
@@ -288,71 +246,134 @@
                 username = document.createElement('div');
                 username.classList.add('username'); // You can style this class in CSS
             }
-            username.innerText = msg.chat_of_user; // Assuming message.username contains the username
+            // console.log(msg.is_edited)
+            if(msg.is_edited == true){
+                edited = document.createElement('span');
+                edited.classList.add("badge",  "bg-info", "ms-2");
+                edited.innerText = "Edited";
+                // console.log(msg.is_edited);
+                username.innerText = msg.chat_of_user;
+                username.appendChild(edited);
+
+            }else{
+                username.innerText = msg.chat_of_user;
+            }
             
             const messageContent = document.createElement('span');
+            messageContent.classList.add("message_content");
             messageContent.innerText = msg.message;
             const timestamp = document.createElement('div');
             timestamp.classList.add('timestamp');
-            timestamp.innerText = msg.created_on;
+            if(!msg.allow_edit && msg.is_edited == true){
+                timestamp.setAttribute("data-timestamp", msg.updated_on);
+                timestamp.innerText = msg.updated_on;
+            }else{
+                timestamp.setAttribute("data-timestamp", msg.created_on);
+                timestamp.innerText = msg.created_on;
+            }
+            
 
             // Append the username and message to the newMessage div
             newMessage.appendChild(username);
             newMessage.appendChild(messageContent);
             newMessage.appendChild(timestamp);
             if(msg.user_id == user_id){
-                newMessage.appendChild(actions);
+                if(msg.allow_edit || msg.allow_delete){
+                    newMessage.appendChild(actions);
+                }
+                
             }
             // Add the message to the message list
-            messageList.appendChild(newMessage);
+            if(!message_id_list.includes(msg.message_id)){
+                messageList.appendChild(newMessage);
+                if(msg.user_id == user_id && msg.allow_edit){
+                    jQuery(saveButton).hide();
+                    jQuery(cancelButton).hide();
+                }
+            }else{
+                // console.log(edited);
+                const msgObj = jQuery(`div[message_id='${msg.message_id}']`);
+                console.log(msgObj);
+                const username_edited = msgObj.find("div.username");
+                // console.log(username_edited);
+                username_edited.closest("div").append(edited);
+                // msgObj.replaceWith(newMessage);
+            }
+            
         });
         messageList.scrollTop = messageList.scrollHeight;
     }
     socket.on("chat message", (message) => {
         // console.log(message);
-        let tmp_message_list = [];
-        tmp_message_list.push(message);
-        appendMessages(tmp_message_list);
-        // socket.emit("getChatGroupMessages", user_chat_credentials);
-        get_messages = true;
+        appendMessages(message);
     });
     socket.on('disconnect', () => {
         socket.connect();
     });
-    function editMessage(msg_id) {
+    var originalMessage = null;
+    async function editMessage(msg_id) {
         const msgObj = jQuery(`div[message_id='${msg_id}']`);
-        const messageContent = msgObj.find("span");
-
+        const messageContent = msgObj.find("span.message_content");
+        const editButton = msgObj.find("button.edit_action");
+        const deleteButton = msgObj.find("button.delete_action");
+        const saveButton = msgObj.find("button.save_button");
+        const cancelButton= msgObj.find("button.cancel_button");
         // Store original message in case of cancel
-        const originalMessage = messageContent.text();
+        originalMessage = messageContent.text();
 
         // Replace span with an input field
-        const inputField = jQuery(`<input type='text' class='form-control' />`);
+        const inputField = jQuery(`<input class='message_content' type='text' class='form-control' />`);
         inputField.val(originalMessage);
         messageContent.replaceWith(inputField);
-        inputField.focus();
+        editButton.hide();
+        deleteButton.hide();
+        saveButton.show();
+        cancelButton.show();
+        
+        const newMessage = inputField.val().trim();
+        // if (newMessage && newMessage !== originalMessage) {
+        editButton.hide();
+        deleteButton.hide();
+    }
+    
+    async function updateMessage(msg_id){
+        // newMessage = originalMessage;
+        const msgObj = jQuery(`div[message_id='${msg_id}']`);
+        const messageContent = msgObj.find("input.message_content");
+        newMessage = jQuery(messageContent).val();
+        try {
+            // console.log(newMessage);
+            const data = { message_id: msg_id, roomID: chat_id, user_id: user_id ,message: newMessage }
+            await socket.emit("edit message", data);
+            socket.on("edit message", (updateRecord)=>{
+                let message_id_list = [];
+                message_id_list.push(msg_id);
+                // console.log(updateRecord);
+                appendMessages(updateRecord, message_id_list);
+            });
+        } catch (error) {
+            console.error("Error updating message:", error);
+        }
+        revertChanges(msg_id, newMessage);
+    } 
 
-        // Handle blur (when the user clicks away) and Enter key to save the new message
-        inputField.on("blur keydown", async function (e) {
-            if (e.type === "blur" || (e.type === "keydown" && e.key === "Enter")) {
-                const newMessage = inputField.val().trim();
-
-                // Check if the message has changed
-                if (newMessage && newMessage !== originalMessage) {
-                    // Send the updated message to the server
-                    try {
-                        await socket.emit("edit message", { message_id: msg_id, message: newMessage });
-                    } catch (error) {
-                        console.error("Error updating message:", error);
-                    }
-                    // Replace input field with the new text
-                    inputField.replaceWith(`<span>${newMessage}</span>`);
-                } else {
-                    // If not changed, revert back to the original message
-                    inputField.replaceWith(`<span>${originalMessage}</span>`);
-                }
-            }
-        });
+    async function revertChanges(msg_id, updateMessage=null) {
+        const msgObj = jQuery(`div[message_id='${msg_id}']`);
+        const messageContent = msgObj.find("input.message_content");
+        const editButton = msgObj.find("button.edit_action");
+        const deleteButton = msgObj.find("button.delete_action");
+        const saveButton = msgObj.find("button.save_button");
+        const cancelButton= msgObj.find("button.cancel_button");
+        editButton.show();
+        deleteButton.show();
+        saveButton.hide();
+        cancelButton.hide();
+        if(updateMessage){
+            originalMessage = updateMessage;
+        }
+        const inputField = `<span class='message_content'>${originalMessage}</span>`;
+        messageContent.replaceWith(inputField);
+        originalMessage = null;
     }
 
 </script>
