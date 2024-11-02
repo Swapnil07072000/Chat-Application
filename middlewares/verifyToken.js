@@ -31,7 +31,7 @@ class JwtToken {
             var decoded = jwt.verify(token, this.secret);
             const user_data = decoded.data;
             const user = await Users.checkUserExistsOrNot(user_data.id);
-            console.log(req.session);
+            // console.log(req.session);
             if(user == false){
                 return this.clearSessionAndRedirect(req, res);    
             }
