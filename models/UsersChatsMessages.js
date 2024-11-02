@@ -87,21 +87,23 @@ class UsersChatsMessages extends Model {
       if(timeout_mins <= delete_timeout){
         ind_record.allow_delete = true;
       }
-      let created_at_timestamp = new Date(per_record.created_at).toLocaleTimeString(undefined, options);
-      let updated_at_timestamp = new Date(per_record.updated_at).toLocaleTimeString(undefined, options)
-      // console.log(created_at_timestamp, updated_at_timestamp, 
+      let created_at_timestamp = new Date(per_record.created_at).getTime();
+      let updated_at_timestamp = new Date(per_record.updated_at).getTime()
+      // console.log(created_at_timestamp, updated_at_timestamp)
       //   (created_at_timestamp != updated_at_timestamp), (per_record.created_at != per_record.updated_at));
       if(created_at_timestamp != updated_at_timestamp){
         // console.log(per_record.id);
+        /*
         if(ind_record.allow_edit == true){
           ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
           ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
         }else{
-          ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
-          ind_record.updated_on = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, options));
-          ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
-          ind_record.timestamps_updated = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, display_options));
-        }
+        */
+        ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+        ind_record.updated_on = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, options));
+        ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+        ind_record.timestamps_updated = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, display_options));
+        // }
         
         ind_record.is_edited = true;
       }else{

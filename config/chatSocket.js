@@ -6,6 +6,8 @@ const users = require("../models/Users");
 
 const userschatsmessages = require("../models/UsersChatsMessages");
 const CryptoService = require("../config/encryptdecrypt");
+const jwtTokenVerify = require("../middlewares/verifyToken");
+
 
 const { v4: uuidv4 } = require("uuid");
 require("../config/messageWorkerService");
@@ -15,13 +17,25 @@ class ChatSocket {
       this.io = io;
       this.initializeSocketConnection();
       this.redisClient = null;
+      // this.io.engine.use((req, res, next)=>{
+      //   jwtTokenVerify.handle(req, res, next);
+      // })
     }
     
     
-
+    
     // Initialize the socket connection
     initializeSocketConnection() {
+      // this.io.use((socket, next) => {
+      //   // let tk = new jwtTokenVerify();
+      //   // this.next = next;
+      //   jwtTokenVerify.handleSocket(socket, next);
+      // });
+
+      
+
       this.io.on('connection', async(socket) => {
+        // console.log(this.next);
         console.log('A user connected '+socket.id);
         await this.getRedisClient();
         this.joinChatGroup(socket);
@@ -60,7 +74,7 @@ class ChatSocket {
     }
 
     // Handle incoming chat messages
-    handleMessage(socket) {
+    handleMessage(socket, next) {
       const options = {  
         weekday: "short", year: "numeric", month: "short",  
         day: "numeric", 
@@ -72,6 +86,10 @@ class ChatSocket {
         hour: "2-digit", minute: "2-digit"  
       };
       socket.on('chat message', async(msg) => {
+        // socket.use();
+        // console.log(this.next);
+        // this.authenticateTheSockets(socket, this.next);
+
         console.log('Message '+msg.message+' to room ' + msg.roomID);
         // const msg_result = {};
         if(msg.roomID){
@@ -105,13 +123,19 @@ class ChatSocket {
       });
 
       socket.on('edit message', async(msg) => {
+        // socket.use();
+        // this.authenticateTheSockets(socket, this.next);
         try{
           const cryptoInstance = new CryptoService();
           const encryptedText = cryptoInstance.encrypt(msg.message);
           // console.log(encryptedText, msg.message);
+          const messageData = await userschatsmessages.findOne({where: {message_id: msg.message_id, chat_id: msg.roomID}});
+          if(!messageData.id){
+            throw "This message does not belongs to this group";
+          }
           const update_record = await userschatsmessages.update(
             {message: encryptedText, updated_at: new Date()},
-            {where: {message_id: msg.message_id}});
+            {where: {message_id: msg.message_id, chat_id: msg.roomID}});
           const processed_chat_record = await userschatsmessages.getChatMessagesFromChatID(msg.roomID, msg.user_id, msg.message_id);
           // const messageData = await userschatsmessages.findOne({where: {message_id: msg.message_id}});
           this.io.to(msg.roomID).emit('edit message', processed_chat_record);
@@ -119,10 +143,30 @@ class ChatSocket {
           console.error("Error in updating record: "+error);
         }
       });
+
+      socket.on("delete message", async(msg)=>{
+        try{
+          const messageData = await userschatsmessages.findOne({where: {message_id: msg.msg_id, chat_id: msg.roomID}});
+          if(!messageData.id){
+            throw "This message does not belongs to this group";
+          }
+          await userschatsmessages.update(
+            {published: '0', updated_at: new Date()},
+            {where: {message_id: msg.msg_id, chat_id: msg.roomID}}
+          );
+          // const processed_chat_records = await userschatsmessages.getChatMessagesFromChatID(msg.roomID, msg.user_id);
+          // socket.emit("messagesOfChatGroup", processed_chat_records);
+          let resp = {msg_id: msg.msg_id};
+          socket.emit("delete message", resp);
+        }catch(error){
+          console.log("Error in deleting messages: "+error);
+        }
+      })
     }
 
     joinChatGroup(socket){
       socket.on("joinChatGroup", (roomID)=>{
+        // this.authenticateTheSockets(socket, this.next);
         console.log("Socket "+socket.id+" joined the Room "+roomID);
         socket.join(roomID);
       })
@@ -131,6 +175,7 @@ class ChatSocket {
     async getChatGroupData(socket, param_chat_id=null, param_user_id=null){
       if(!param_chat_id && !param_user_id){
         socket.on("getChatGroupMessages", async(chat_cred)=>{
+          // this.authenticateTheSockets(socket, this.next);
           // console.log(chat_cred);
           const chat_id = chat_cred.chat_id;
           const user_id = chat_cred.user_id;

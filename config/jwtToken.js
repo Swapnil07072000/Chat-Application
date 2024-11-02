@@ -38,6 +38,9 @@ class JwtToken{
         
     }
 
+    
+
+
 }
 
 module.exports = JwtToken;

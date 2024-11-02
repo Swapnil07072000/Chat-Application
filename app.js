@@ -21,7 +21,12 @@ const server = http.createServer(app);
 const io = new Server(server,{
     pingInterval: 10000, 
     pingTimeout: 5000,   
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+    },
 });
+
 // console.log(io);
 new ChatSocket(io);
 
