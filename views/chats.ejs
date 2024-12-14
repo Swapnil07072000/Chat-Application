@@ -1,0 +1,121 @@
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-3 align-items-center">
+        <h2>Chat Groups</h2>
+        <div>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                Create New Group
+            </button>
+            <div class="dropdown d-inline">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle fa-lg"></i>
+                    <span><%= data.user.username %></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="/user/friend-requests">Friend Requests</a>
+                    <a class="dropdown-item" href="/user/logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h5 class="mb-3">Private Chats</h5>
+            <ul class="list-group">
+                <% data.private_chat_group_list.forEach(function(group) { %>
+                    <% let chat_url = "/user/chats/" + group.chat_id %>
+                    <li class="list-group-item">
+                        <a href="<%= chat_url %>"><%= group.private_chat_name %></a>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h5 class="mb-3">Your Groups</h5>
+            <ul class="list-group">
+                <% data.groups.forEach(function(group) { %>
+                    <% let chat_url = "/user/chats/" + group.chat_id %>
+                    <li class="list-group-item">
+                        <a href="<%= chat_url %>"><%= group.chat_name %></a>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h5 class="mb-3">Other Groups</h5>
+            <ul class="list-group">
+                <% if (data.other_groups) { %>
+                    <% data.other_groups.forEach(function(othergroup) { %>
+                        <% let chat_url = "/user/chats/" + othergroup.chat_id; let join_url = "/user/chatjoin/" + othergroup.chat_id %>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <% if (othergroup.is_present_in_group == 1) { %>
+                                <a href="<%= chat_url %>"><%= othergroup.chat_name %></a>
+                            <% } else { %>
+                                <span><%= othergroup.chat_name %></span>
+                            <% } %>
+                            <% if (othergroup.is_present_in_group == 0) { %>
+                                <a class="btn btn-primary btn-sm" href="<%= join_url %>">Join Chat</a>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+    <div class="modal fade" id="createGroupModal" tabindex="-1" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createGroupModalLabel">Create New Chat Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">Group Name</label>
+                            <input type="text" name="groupName" id="groupName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="groupDescription" class="form-label">Group Description</label>
+                            <input type="text" name="groupDescription" id="groupDescription" class="form-control" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Create Group</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    jQuery('#createGroupForm').on('submit', function(event) {
+        event.preventDefault();
+        const groupName = jQuery('#groupName').val();
+        const groupDescription = jQuery('#groupDescription').val();
+        jQuery.ajax({
+            type: 'POST',
+            url: '/chat/create',
+            data: {
+                groupName: groupName,
+                groupDescription: groupDescription,
+            },
+            success: function(response) {
+                if (response.status == 200) {
+                    location.reload(); 
+                } else {
+                    alert(response.msg);
+                }
+            },
+            error: function(xhr) {
+                alert('Error creating group: ' + xhr.responseText);
+            }
+        });
+    });
+</script>
+   
+    
+   
+    
+
+    
+

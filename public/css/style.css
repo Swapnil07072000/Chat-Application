@@ -1,0 +1,75 @@
+.chat-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 25%;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+}
+
+.chat-box {
+    width: 75%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column; /* Stack the username and message vertically */
+    margin: 5px 0; /* Add some spacing between messages */
+    padding: 10px; /* Add padding for a better appearance */
+    max-width: 80%; /* Limit the width */
+    border-radius: 8px; /* Add rounded corners */
+}
+
+.message.other {
+    align-self: flex-end; /* Align to the right */
+    background-color: #f8d7da; /* Optional: background color for other messages */
+}
+
+.message.user {
+    align-self: flex-start; /* Align to the left for user messages */
+    background-color: transparent; /* No background color for user's messages */
+}
+
+.username {
+    font-weight: bold;
+    margin: 5px 0; /* Space between username and message */
+}
+
+#user-list {
+    max-height: 20rem; /* Adjust height as needed */
+    overflow-y:auto;
+}
+
+.timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+}
+.message-actions {
+    display: none;
+    position: relative; /* Position actions absolutely within the message */
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+}
+
+.message:hover .message-actions{
+    display: flex; /* Show actions on hover */
+}
+
+.btn-group {
+    gap: 5px; /* Space between buttons */
+}

@@ -1,0 +1,72 @@
+
+<div class="container mt-5">
+    
+    <a href="/user/chats" class="btn btn-primary">Back</a>
+    <div class="card p-4 text-center">
+        <div class="d-flex justify-content-center">
+            <i class="fas fa-user-circle fa-5x mb-3"></i>
+        </div>
+        <h2 class="mb-4" id="username"><%= data.frienduser.username %></h2>
+        <div class="d-flex justify-content-center align-items-center">
+            <% switch(true){ 
+                case (data.is_prev_request_present === true && data.is_my_request == true):    
+            %>
+                    <div class="alert alert-warning mx-2" role="alert">
+                        <i class="fas fa-hourglass-half"></i> Friend Request Already Sent <br/>
+                        <a href="/user/friend-requests?from=profile&user_id=<%= data.frienduser.id %>" class="btn btn-link">Go to Request Page</a>
+                    </div>
+            <%  break;
+            case (data.is_prev_request_present === true && data.is_my_request == false):    
+            %>
+                    <div class="alert alert-info mx-2" role="alert">
+                        <i class="fas fa-info-circle"></i> Friend request received.<br/>
+                        <a href="/user/friend-requests?from=profile" class="btn btn-link">Go to Request Page</a>
+                    </div>
+            <%  break; %>
+            <%  case (data.is_already_friend === true): %>
+                    <div class="alert alert-success mx-2" role="alert">
+                        <i class="fas fa-check-circle"></i> Already Friend
+                    </div>
+            <%  break; %>
+            <% default: %>
+                    <button class="btn btn-primary mx-2" id="friendRequestButton">
+                        <i class="fas fa-user-plus"></i> Send Friend Request
+                    </button>
+            <% break; 
+                }
+            %>
+            <% if(data.is_already_friend === true){ %>
+                <a href="/user/chats/<%= data.user_circle_record.chat_id %>" class="btn btn-secondary">Chat</a>
+            <% } %>
+        </div>
+    </div>
+</div>
+<script>
+    const curr_user = <%= data.curruser.id %>;
+    const friend_user = <%= data.frienduser.id %>;
+    jQuery("#friendRequestButton").on("click", function(){
+        sendFriendRequest();
+    })
+    function sendFriendRequest(){
+        let data = {};
+        data.friend_user = friend_user;
+        data.curr_user = curr_user;
+        jQuery.ajax({
+            url: "/user/friendrequest",
+            data: data,
+            type: "POST",
+            success: function(response){
+                if(response.httpCode == 200){
+                    alert(response.httpMessage);
+                    window.location.reload();
+                }else{
+                    alert(response.httpMessage);
+                }
+            },
+            failure: function(){
+                alert("Something went wrong");
+                window.location.reload();
+            }
+        });
+    }
+</script>

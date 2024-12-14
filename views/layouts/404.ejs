@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something went wrong</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        }
+        .error-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .error-container h1 {
+            font-size: 3rem;
+            color: #dc3545; /* Bootstrap danger color */
+            margin-bottom: 1rem;
+        }
+        .error-container p {
+            color: #6c757d; /* Bootstrap muted color */
+            margin-bottom: 1.5rem;
+        }
+        .btn-home {
+            font-size: 1rem;
+            padding: 0.5rem 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1 class="display-4"><i class="bi bi-exclamation-triangle-fill"></i> Oops!</h1>
+        <p class="lead">Something unexpected happened. Please try again later.</p>
+        <a href="/login" class="btn btn-danger btn-home">Go to Home</a>
+    </div>
+</body>
+</html>
