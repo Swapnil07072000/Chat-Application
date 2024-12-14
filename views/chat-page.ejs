@@ -1,30 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Chat</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
 
+<link rel="stylesheet" href="/css/style.css">
 <div class="container-fluid chat-container">
     <!-- Sidebar -->
     <div class="sidebar">
         <!-- Button to open the modal -->
         <a href="/user/chats" class="btn btn-primary">Back</a>
-        <% if(is_group == 1){ %>
+        <% if(data.is_group == 1){ %>
             <h6>Group Info:</h6>
-            <p id="group-description"><%= group_description %></p>
+            <p id="group-description"><%= data.group_description %></p>
             <!-- User List Section -->
             <h6>Chat Members:</h6>
             <ul id="user-list" class="list-group">
-                <% chat_group_users_list.forEach(user => { %>
+                <% data.chat_group_users_list.forEach(user => { %>
                     <li class="list-group-item">
-                        <a href="/user/user-profile/<%= user.id %>" target="_blank"><%= user.username %></a>
+                        <a href="/user/user-profile/<%= data.user.id %>" target="_blank"><%= user.username %></a>
                         <% if(user.is_self == '1'){ %>
                             <span class="badge bg-primary ms-2">You</span>
                         <% } %>
@@ -34,9 +23,9 @@
         <% } else { %>
             <h6>Private Chat Members:</h6>
             <ul id="user-list" class="list-group">
-                <% chat_group_users_list.forEach(user => { %>
+                <% data.chat_group_users_list.forEach(user => { %>
                     <li class="list-group-item">
-                        <a href="/user/user-profile/<%= user.id %>" target="_blank"><%= user.username %></a>
+                        <a href="/user/user-profile/<%= data.user.id %>" target="_blank"><%= user.username %></a>
                         <% if(user.is_self == '1'){ %>
                             <span class="badge bg-primary ms-2">You</span>
                         <% } %>
@@ -49,16 +38,16 @@
     <!-- Chat Box -->
     <div class="chat-box">
         <!-- Group Name Display -->
-        <% if(is_group == 1){ %>
+        <% if(data.is_group == 1){ %>
             <h4 class="text-center border border-primary p-2 rounded mb-3">
-                <span id="group-name"><%= chat_group_name %></span>
+                <span id="group-name"><%= data.chat_group_name %></span>
             </h4>
         <% } %>
         
         <div class="message-list" id="message-list">
         </div>
         <div id="scroll_bottom"></div>
-        <% if(is_present_in_group == 1){ %>
+        <% if(data.is_present_in_group == 1){ %>
             <!-- Message Input -->
             <form id="chat-form" class="d-flex">
                 
@@ -68,14 +57,10 @@
         <% } %>
     </div>
 </div>
-
-<!-- Optional JavaScript -->
-<script src="/js/jquery.min.js"></script>
-<script src="/js/bootstrap.bundle.min.js"></script>
 <script>
     var url_array = location.href.split('/');
     const chat_id = url_array[url_array.length - 1];
-    const user_id = <%= user.id %>;
+    const user_id = <%= data.user.id %>;
     const messageList = document.getElementById('message-list'); 
     var lastMessageDate = null;
     var messages_created_at = [];
@@ -164,53 +149,37 @@
 
     function appendDateDivider(date) {
         const dateDivider = document.createElement('div');
-        dateDivider.classList.add('d-flex', 'align-items-center', 'my-3'); // Center the line and date
-
-        // Left line
+        dateDivider.classList.add('d-flex', 'align-items-center', 'my-3'); 
         const leftLine = document.createElement('div');
         leftLine.classList.add('flex-grow-1', 'border-bottom', 'border-muted', 'me-2');
-
-        // Date text
         const dateText = document.createElement('span');
         dateText.classList.add('text-muted', 'fw-bold', 'px-2');
         dateText.innerText = date;
-
-        // Right line
         const rightLine = document.createElement('div');
         rightLine.classList.add('flex-grow-1', 'border-bottom', 'border-muted', 'ms-2');
-
-        // Append lines and date text to the divider
         dateDivider.appendChild(leftLine);
         dateDivider.appendChild(dateText);
         dateDivider.appendChild(rightLine);
-
         messageList.appendChild(dateDivider);
     }
 
 
 
     function appendMessages(messages, message_id_list=[]){
-        // console.log(messages);
         messages.forEach(msg => {   
-
             const messageDate = new Date(msg.created_on).toDateString();
-
-            // Check if this message date differs from the last one
             if (lastMessageDate !== messageDate) {
-                lastMessageDate = messageDate; // Update the lastMessageDate
-                appendDateDivider(formatDate(msg.created_on)); // Add date divider
+                lastMessageDate = messageDate; 
+                appendDateDivider(formatDate(msg.created_on)); 
             }
-            
-
             const newMessage = document.createElement('div');
             newMessage.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other', "p-4");
             newMessage.setAttribute('message_id', msg.message_id);
             var username = "";
             let saveButton = null, cancelButton = null;
-            
             if(msg.user_id != user_id){
                 username = document.createElement('a');
-                username.classList.add('username'); // You can style this class in CSS
+                username.classList.add('username');
                 username.href = "/user/user-profile/"+msg.user_id;
                 username.target = "_blank";
             } else {
@@ -225,13 +194,11 @@
 
                     saveButton = document.createElement('button');
                     saveButton.classList.add('btn', 'btn-sm', 'btn-success', 'save_button');
-                    // saveButton.innerHTML = '<i class="fas fa-edit"></i>';
                     saveButton.innerHTML = "Save"
                     saveButton.onclick = () => updateMessage(msg.message_id);
                     actions.appendChild(saveButton);
                     cancelButton = document.createElement('button');
                     cancelButton.classList.add('btn', 'btn-sm', 'btn-warning', 'cancel_button');
-                    // cancelButton.innerHTML = '<i class="fas fa-edit"></i>';
                     cancelButton.innerHTML = "Cancel"
                     cancelButton.onclick = () => revertChanges(msg.message_id);
                     actions.appendChild(cancelButton);
@@ -246,15 +213,12 @@
                 }
                 
                 username = document.createElement('div');
-                username.classList.add('username'); // You can style this class in CSS
+                username.classList.add('username'); 
             }
-            // console.log(msg.is_edited)
             if(msg.is_edited == true){
-
                 edited = document.createElement('span');
                 edited.classList.add("badge",  "bg-info", "ms-2");
                 edited.innerText = "Edited";
-                // console.log(msg.is_edited);
                 username.innerText = msg.chat_of_user;
                 username.appendChild(edited);
 
@@ -274,9 +238,6 @@
                 timestamp.setAttribute("data-timestamp", msg.created_on);
                 timestamp.innerText = msg.created_on;
             }
-            
-
-            // Append the username and message to the newMessage div
             newMessage.appendChild(username);
             newMessage.appendChild(messageContent);
             newMessage.appendChild(timestamp);
@@ -286,7 +247,6 @@
                 }
                 
             }
-            // Add the message to the message list
             if(!message_id_list.includes(msg.message_id)){
                 messageList.appendChild(newMessage);
                 if(msg.user_id == user_id && msg.allow_edit){
@@ -294,24 +254,18 @@
                     jQuery(cancelButton).hide();
                 }
             }else{
-                // console.log(edited);
                 const msgObj = jQuery(`div[message_id='${msg.message_id}']`);
-                // console.log(msgObj);
                 const username_edited = msgObj.find("div.username");
-                // console.log(username_edited);
                 const editedObj = username_edited.find("span.badge");
                 if(editedObj.length == 0){
                     username_edited.closest("div").append(edited);    
                 }
-                
-                // msgObj.replaceWith(newMessage);
             }
             
         });
         messageList.scrollTop = messageList.scrollHeight;
     }
     socket.on("chat message", (message) => {
-        // console.log(message);
         appendMessages(message);
     });
     socket.on('disconnect', () => {
@@ -325,10 +279,7 @@
         const deleteButton = msgObj.find("button.delete_action");
         const saveButton = msgObj.find("button.save_button");
         const cancelButton= msgObj.find("button.cancel_button");
-        // Store original message in case of cancel
         originalMessage = messageContent.text();
-
-        // Replace span with an input field
         const inputField = jQuery(`<textarea class='message_content' type='text' class='form-control' />`);
         inputField.val(originalMessage);
         messageContent.replaceWith(inputField);
@@ -336,26 +287,21 @@
         deleteButton.hide();
         saveButton.show();
         cancelButton.show();
-        
         const newMessage = inputField.val().trim();
-        // if (newMessage && newMessage !== originalMessage) {
         editButton.hide();
         deleteButton.hide();
     }
     
     async function updateMessage(msg_id){
-        // newMessage = originalMessage;
         const msgObj = jQuery(`div[message_id='${msg_id}']`);
         const messageContent = msgObj.find("textarea.message_content");
         newMessage = jQuery(messageContent).val();
         try {
-            // console.log(newMessage);
             const data = { message_id: msg_id, roomID: chat_id, user_id: user_id ,message: newMessage }
             await socket.emit("edit message", data);
             socket.on("edit message", (updateRecord)=>{
                 let message_id_list = [];
                 message_id_list.push(msg_id);
-                // console.log(updateRecord);
                 appendMessages(updateRecord, message_id_list);
             });
         } catch (error) {
@@ -401,6 +347,3 @@
     }
 
 </script>
-
-</body>
-</html>

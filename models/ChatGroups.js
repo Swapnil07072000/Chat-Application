@@ -2,7 +2,7 @@ const { DataTypes, Model, Sequelize } = require('sequelize');
 const sequelize = require('../config/db');
 
 class ChatGroups extends Model {
-  static async getAllGroupForUser(user_id){
+  getAllGroupForUser = async(user_id) => {
     let result = "";
     try{
       result = await sequelize.query(
@@ -54,12 +54,10 @@ class ChatGroups extends Model {
     return (result?true:false);
   }
 
-  static async getAllGroup(chat_id_list, user_id){
+  getAllGroup = async(chat_id_list, user_id) => {
     let result = "";
     try{
       let query = "";
-      // console.log(chat_id_list, chat_id_list.length <= 0);
-      // console.log(user_id);
       if(!chat_id_list || chat_id_list.length <= 0){
         query = `
           SELECT g.chat_id, g.chat_name,
@@ -79,13 +77,13 @@ class ChatGroups extends Model {
             ((uc.friend_user_id = g.user_id) OR (uc.user_id = g.user_id))
             AND uc.active = '1'
             )
+          WHERE 1=1
           AND g.published = '1' 
           AND g.is_group = '1'
           AND g.user_id != ${user_id}
           AND cu.active = '1'
           GROUP BY g.id
         ` ;
-        // console.info(query);
       }else{
         const chat_ids = "'"+chat_id_list.join("','")+"'";
         query = `
@@ -109,7 +107,6 @@ class ChatGroups extends Model {
           type: Sequelize.QueryTypes.SELECT,
         }
       );  
-      // console.log(result);
       
     }catch(error){
       return error;
@@ -118,7 +115,7 @@ class ChatGroups extends Model {
     
   }
 
-  static async getPrivateChatGroups(user_id){
+  getPrivateChatGroups = async(user_id) =>{
     let result = "";
     try {
       let query = "";
@@ -138,13 +135,11 @@ class ChatGroups extends Model {
         AND cu.active = '1'
         GROUP BY g.id
       ` ;
-      // console.info(query);
       result = await sequelize.query(query,
         {
           type: Sequelize.QueryTypes.SELECT,
         }
       );
-      // console.log(result);
     } catch (error) {
       return error;
     }

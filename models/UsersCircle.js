@@ -2,39 +2,41 @@ const { DataTypes, Model, Sequelize } = require('sequelize');
 const sequelize = require('../config/db'); 
 
 class UsersCircle extends Model {
-    //User is already friend or not
-    static async isUserAlreadyFriend(from_user, to_user){
-        let result = "";
+    
+    /**
+     * Check for the user whom one is sending
+     * the request, is already friend
+     */
+    isUserAlreadyFriend = async(from_user, to_user) => {
         let is_error = false, is_present = false;
+        let error_msg = "";
         try{
-        result = await sequelize.query(
-            `
-            SELECT uc.id FROM users_circle AS uc
-            WHERE uc.active = '1'
-            AND (uc.friend_user_id = :from_user
-            OR uc.friend_user_id = :to_user)
-            AND (uc.user_id = :from_user
-            OR uc.user_id = :to_user)
-            `,
-            {
-            replacements: {from_user, to_user},
-            type: Sequelize.QueryTypes.SELECT,
+            let result = "";
+            result = await sequelize.query(
+                `
+                SELECT uc.id FROM users_circle AS uc
+                WHERE uc.active = '1'
+                AND (uc.friend_user_id = :from_user
+                OR uc.friend_user_id = :to_user)
+                AND (uc.user_id = :from_user
+                OR uc.user_id = :to_user)
+                `,
+                {
+                replacements: {from_user, to_user},
+                type: Sequelize.QueryTypes.SELECT,
+                }
+            );  
+            if (typeof result != undefined && 
+                result != null && 
+                result.length != null && 
+                result.length > 0) {
+                is_present = true;
             }
-        );  
-        // console.log(result);
-        // is_present = (!result)?false:true;
-        if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
-            is_present = true;
-        }
-        // console.log(is_present);
-        return [is_error, is_present];
-        
         }catch(error){
-            // return error;
-            console.log(error);
             is_error = true;
-            return [is_error, is_present];
+            error_msg = error.message;
         }
+        return [is_error, is_present, error_msg];
     }
 }
 

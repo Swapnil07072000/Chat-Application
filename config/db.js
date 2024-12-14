@@ -10,6 +10,7 @@ const dialect = process.env.DB_TYPE;
 const sequelize = new Sequelize(db, username, password, {
     host: host,
     dialect: dialect,
+    logging: false
 });
 
 (async () => {

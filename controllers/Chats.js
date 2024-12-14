@@ -18,34 +18,37 @@ class Chats{
         this.valid_actions_status = ['-1', '1', '-2'];
     }
 
-    //Get All the groups
+    /**
+     * Function to get all the groups
+     */
     async getAllGroups(req, res){
         const user = req.session.user;
-
-        // console.log(user.id, req.session.user.data.id);
-        const user_id = user.id;
-        // const selfCreatedGroups = await chatgroups.findAll({where: {user_id}});
-        // console.log(chatsgroupusers);
-        // console.log(user_id);
-        const [chat_id_list, all_groups_list] = await chatgroups.getAllGroupForUser(user_id);
-        // console.log(all_groups_list);
-        const other_groups_list = await chatgroups.getAllGroup(chat_id_list, user_id);
-        // console.log(other_groups_list);
-        const private_chat_list = await chatgroups.getPrivateChatGroups(user_id);
-        // console.log({groups: all_groups_list, other_groups: other_groups_list, user: user});
-        // console.log(private_chat_list);
-        // "groups_from_my_circle": [],
-        
-        const chats = {
-            groups: all_groups_list, 
-            other_groups: other_groups_list, 
-            private_chat_group_list: private_chat_list, 
-            user: user,
-        };
-        res.render("chats", chats); 
+        let error_msg = "";
+        let response = null;
+        try {
+            const user_id = user.id;    
+            const chatgroup = new chatgroups();
+            const [chat_id_list, all_groups_list] = await chatgroup.getAllGroupForUser(user_id);
+            const other_groups_list = await chatgroup.getAllGroup(chat_id_list, user_id);
+            const private_chat_list = await chatgroup.getPrivateChatGroups(user_id);
+            const chats = {
+                groups: all_groups_list, 
+                other_groups: other_groups_list, 
+                private_chat_group_list: private_chat_list, 
+                user: user,
+            };
+            response = res.render("layouts/index",{partial:"../chats", data: chats} );
+        } catch (error) {
+            error_msg = error.message;
+            req.flash("error", error_msg);
+            response = res.redirect("/logout");
+        }
+        return response;
     }
 
-    //Group Creation
+    /**
+     * This function create groups
+     */
     createGroup = async(req, res) => {
         const user = req.session.user;
         var user_id = user.id;
@@ -58,21 +61,6 @@ class Chats{
         // console.log(chat_description);
         try{
             const [is_error, response] = await this.createGroupAndAddUsers(chat_id, chat_name, chat_description, user_id, users);
-            // const group = await chatgroups.create({chat_id, chat_name, chat_description, user_id});
-            // const group_users = await chatsgroupusers.create({chat_id, user_id})
-            //     .catch((error)=>{
-            //         throw error;
-            //     });
-            // if(users){
-            //     for(user_id in users){
-            //         await chatsgroupusers.create({chat_id, user_id})
-            //             .then(()=>{})
-            //             .catch((error)=>{
-            //                 throw error;
-            //             });
-            //     }
-            // }
-            // console.log(is_error);
             if(is_error == true){
                 throw response;
             }
@@ -131,7 +119,7 @@ class Chats{
                 "is_group": is_group,
             };
             // console.log(chat_data);
-            res.render("chat-page", chat_data);
+            res.render("layouts/index",{partial: "../chat-page", data:chat_data});
             // const chat_records = await chatsgroupusers.getChatRecords(user_id, chat_id);
         }catch(error){
             console.error(error);
@@ -184,22 +172,33 @@ class Chats{
     async getAllFriendRequestsForUser(req, res){
         const {from} = req.query;
         let back_url = "";
-        if(from){
-            switch(from){
-                case "profile":
-                    const {user_id} = req.query;
-                    if(!user_id){
-                        back_url = "/user/user-profile";
-                    }else{
-                        back_url = "/user/user-profile/"+user_id;
-                    }
-                    
-                break;
+        try {
+            if(from){
+                switch(from){
+                    case "profile":
+                        const {user_id} = req.query;
+                        if(!user_id){
+                            back_url = "/user/user-profile";
+                        }else{
+                            back_url = "/user/user-profile/"+user_id;
+                        }
+                        
+                    break;
+                }
             }
+            const user = req.session.user;
+            const userReq = new userrequests();
+            const [is_error, friendRequests, friendRequestsFromOthers] = await userReq.getAllFriendRequestsForUser(user.id);    
+        } catch (error) {
+            
         }
-        const user = req.session.user;
-        const [is_error, friendRequests, friendRequestsFromOthers] = await userrequests.getAllFriendRequestsForUser(user.id);
-        res.render("listfriendrequests",{sentRequests: friendRequests,receivedRequests: friendRequestsFromOthers, backURL: back_url });
+        
+        
+        res.render("layouts/index", {partial:"../listfriendrequests",
+            sentRequests: friendRequests,
+            receivedRequests: friendRequestsFromOthers, 
+            backURL: back_url 
+        });
     }
 
     createGroupAndAddUsers = async(...args)=>{

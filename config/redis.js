@@ -8,6 +8,7 @@ class RedisClient {
   }
 
   async initiateConnection(){
+    return
     const redis_username = process.env.REDIS_USERNAME;
     const redis_password = process.env.REDIS_PASSWORD;
     const redis_host = process.env.REDIS_HOST;

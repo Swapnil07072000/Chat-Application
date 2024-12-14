@@ -39,45 +39,6 @@ sequelize.sync({ force: false }) // `force: false` ensures existing tables are n
         console.error('Error synchronizing tables:', err);
     });
 
-//Redis settings
-/* Moved to /config/redis.js */
-/*
-const redis_username = process.env.REDIS_USERNAME;
-const redis_password = process.env.REDIS_PASSWORD;
-const redis_host = process.env.REDIS_HOST;
-const redis_port = process.env.REDIS_PORT;
-const redis_url = "redis://"+redis_username+":"+redis_password+"@"+redis_host+":"+redis_port;
-const redisClient = redis.createClient({
-    url: redis_url
-});
-redisClient.connect().then(()=>{
-    console.log("Redis connected successfully")
-});
-redisClient.on("error", (err)=>{
-    console.error("Redis error: "+error);
-})
-*/
-/*
-Using redis to store the session removed and 
-replaced with JWT
-
-const redisInstance = new RedisClient();
-// redisInstance.connect();
-const redisClient = redisInstance.getClient();
-// console.log("A "+redisClient)
-// Configure session middleware
-app.use(session({
-    // store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET, // Replace with a secure key
-    resave: false,
-    saveUninitialized: true,
-    cookie: { 
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 // 1-hour expiration 
-    } 
-}));
-
-*/
 app.use(session({
     secret: process.env.SESSION_SECRET, // Replace with a secure key
     resave: false,
@@ -87,10 +48,6 @@ app.use(session({
         maxAge: 1000 * 60 * 60 // 1-hour expiration 
     } 
 }));
-
-
-
-
 
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
@@ -99,19 +56,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(flash());
 
-
-
 app.use("/", router);
 
+app.use((req, res, next) => {
+    res.status(404).render("layouts/404");
+});
+app.use((err, req, res, next) => {
+    console.log(err);
+    res.status(500).render("layouts/500");
+});
 
 
 const port = process.env.PORT || 9001;
-
-/* Commented as server should listen to socket.io server */
-// app.listen(port, ()=>{
-//     console.log("App running on port "+port);
-// })
-/* End */
 
 server.listen(port, ()=>{
     console.log("App running on port "+port);

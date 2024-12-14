@@ -2,13 +2,17 @@ const { DataTypes, Model, Sequelize } = require('sequelize');
 const sequelize = require('../config/db'); 
 
 class UserRequests extends Model {
-
-    //Get all the friend requests
-    static async getAllFriendRequestsForUser(user_id){
-        let result = "";
+    /**
+     * For a specified user, get all the friend requests
+     * which are pending
+     */
+    getAllFriendRequestsForUser = async(user_id) => {
         let is_error = false;
+        let request_from_user = null;
+        let request_to_other_users = null;
+        let error_msg = "";
         try{
-            let request_from_user = await sequelize.query(
+            request_from_user = await sequelize.query(
                 `
                 SELECT ur.*, u.* FROM user_requests AS ur
                 INNER JOIN users AS u
@@ -24,8 +28,7 @@ class UserRequests extends Model {
                     type: Sequelize.QueryTypes.SELECT,
                 }
             );  
-            // console.log(result);
-            let request_to_other_users =
+            request_to_other_users =
                 await sequelize.query(
                     `
                     SELECT ur.*, u.* FROM user_requests AS ur
@@ -42,23 +45,24 @@ class UserRequests extends Model {
                         type: Sequelize.QueryTypes.SELECT,
                     }
                 ); 
-            // console.log(is_error, is_present);
-            // console.log(request_from_user, request_to_other_users);
-            return [is_error, request_from_user, request_to_other_users];
-        
+            
         }catch(error){
-            // return error;
-            console.log("Error in checking the friend request: "+error);
             is_error = true;
-            return [is_error, result];
-        }        
+            error_msg = error.message;
+        }
+        return [is_error, request_from_user, request_to_other_users, error_msg];        
     }
 
-    //Check if friend request is already send or not
-    static async isFriendRequestSend(from_user, to_user){
+
+    /**
+     * Check is already a friend request
+     * exists or not
+     */
+    isFriendRequestSend = async(from_user, to_user) =>{
         let result = "";
         let is_error = false, is_present = false;
-        // console.log(from_user, to_user);
+        let is_my_request = true;
+        let error_msg = "";
         try{
             result = await sequelize.query(
                 `
@@ -75,28 +79,22 @@ class UserRequests extends Model {
                 type: Sequelize.QueryTypes.SELECT,
                 }
             );  
-            // console.log(result);
-            // is_present = (!result)?false:true;
-            if (typeof result != "undefined" && result != null && result.length != null && result.length > 0) {
+            if (typeof result != undefined && 
+                result != null && 
+                result.length != null && 
+                result.length > 0) {
                 is_present = true;
             }
-            let is_my_request = true;
-            // console.log(result[0], result.request_last_action_by, from_user);
             if(result[0]){
                 if(result[0].request_last_action_by != from_user){
                     is_my_request = false;
                 }
             }
-            
-            // console.log(is_error, is_present);
-            return [is_error, is_present, is_my_request];
-        
         }catch(error){
-            // return error;
-            console.log("Error in already friend request send or not: "+error);
             is_error = true;
-            return [is_error, is_present];
+            error_msg = error.message;
         }
+        return [is_error, is_present, is_my_request, error_msg];
     }
     
 }
