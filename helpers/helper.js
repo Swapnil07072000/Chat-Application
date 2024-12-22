@@ -28,6 +28,23 @@ class Helper{
         }
         return date.toISOString().replace("T"," ").substring(0, 19);
     }
+
+    /**
+     * 
+     */
+    static async performFileChanges(fileInfo){
+        for(let key in fileInfo){
+            if(fileInfo.hasOwnProperty(key)){
+                let file = fileInfo[key];
+                const name = file.file_url.replace(/\\/g, '/')
+                const tmp_url = new URL(`http://localhost:9000/${name}`);
+                const secure_url = "["+file.file_name+"]["+tmp_url.href+"]";
+                fileInfo[key].secure_url = secure_url;
+                fileInfo[key].image_url = tmp_url.href;
+            }
+        }
+        return fileInfo;
+    }
 }
 
 module.exports = Helper;

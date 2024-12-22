@@ -8,8 +8,10 @@ const userschatsmessages = require("../models/UsersChatsMessages");
 const CryptoService = require("../config/encryptdecrypt");
 const jwtTokenVerify = require("../middlewares/verifyToken");
 
+const fileUpload = require("../controllers/FileUpload");
 
 const { v4: uuidv4 } = require("uuid");
+const fileModel = require("../models/FileUpload");
 require("../config/messageWorkerService");
 
 class ChatSocket {
@@ -86,14 +88,29 @@ class ChatSocket {
         hour: "2-digit", minute: "2-digit"  
       };
       socket.on('chat message', async(msg) => {
-        // socket.use();
-        // console.log(this.next);
+        const file_model = new fileModel();
         // this.authenticateTheSockets(socket, this.next);
-
+        const fileResponse = await file_model.getFilesMap(msg.roomID, null, msg.user_id);
+        // console.log(msg.message, fileResponse);
+        if(fileResponse.status == false){
+          throw new Error(fileResponse.error_msg);
+        }
+        const fileMap = fileResponse.fileMap;
+        const fileIds = [];
+        const message = msg.message;
+        for(let key in fileMap){
+          if(fileMap.hasOwnProperty(key)){
+            if(message.includes(key)){
+              let fileObj = fileMap[key];
+              fileIds.push(fileObj.file_id);
+            }
+          }
+        }
         console.log('Message '+msg.message+' to room ' + msg.roomID);
         // const msg_result = {};
         if(msg.roomID){
           try{
+            
             // this.redisClient.publish("chat_messages", JSON.stringify(msg));
             const message_id = uuidv4();
             const cryptoInstance = new CryptoService();
@@ -105,8 +122,26 @@ class ChatSocket {
                 message: encryptedText,
             })
             if(message_data.id > 0){
+              for(let key in fileIds){
+                const file_id  = fileIds[key];
+                // console.log(file_id, message_data.message_id); 
+                await fileModel.update(
+                  {
+                    msg_id: message_data.message_id,
+                    commited: '1'
+                  },{
+                    where: {
+                      file_id: file_id
+                    }
+                  }
+                );
+
+              }
+              // const file = new fileUpload();
+              // await fileUpload.upload(msg.files, msg.roomID, message_data.message_id);  
               const processed_chat_record = await userschatsmessages.getChatMessagesFromChatID(message_data.chat_id, message_data.user_id, message_data.message_id);
               // console.log(processed_chat_record);
+              
               this.io.to(msg.roomID).emit('chat message', processed_chat_record);
             }
             
@@ -181,6 +216,7 @@ class ChatSocket {
           const user_id = chat_cred.user_id;
           const processed_chat_records = await userschatsmessages.getChatMessagesFromChatID(chat_id, user_id);
           // console.log(processed_chat_records);
+          // processed_chat_records = ["A":{"a":'A'}];
           socket.emit("messagesOfChatGroup", processed_chat_records);
         })
       }else{

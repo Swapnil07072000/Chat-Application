@@ -1,5 +1,7 @@
 
 <link rel="stylesheet" href="/css/style.css">
+<!-- <link rel="stylesheet" href="/css/uppy.min.css"> -->
+<link rel="stylesheet" href="/css/quill.snow.css">
 <div class="container-fluid chat-container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -50,18 +52,117 @@
         <% if(data.is_present_in_group == 1){ %>
             <!-- Message Input -->
             <form id="chat-form" class="d-flex">
-                
-                <input type="text" class="form-control me-2" id="message" placeholder="Type your message here..." required>
+                 <!-- <button id="upload-trigger" type="button" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-paperclip"></i> Attach File
+                </button> -->
+                <!-- <input type="text"  placeholder="Type your message here..." required> -->
+                <div class="form-control me-2" id="message"></div>
                 <button type="submit" class="btn btn-primary">Send</button>
             </form>
         <% } %>
     </div>
 </div>
+<!-- <script src="/js/uppy.min.js"></script> -->
+<script src="/js/quill.min.js"></script>
+<style>
+    img {
+  width: 100%; /* or a fixed width like 300px */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: contain; /* Ensures the image fits without distortion */
+}
+</style>
 <script>
+    const myToolbar = [
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'image'], 
+        ['clean'],
+      ];
+    const quill = new Quill('#message', {
+        theme: 'snow',
+        placeholder: 'Type your message...',
+        modules: {
+            toolbar: {
+                container: myToolbar,
+                handlers:{
+                    image: imageHandler
+                }
+            },
+        }
+    });
+ function imageHandler(){
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute("multiple", "multiple")
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = async () => {
+      const file = input.files ? input.files[0] : null;
+      let data = null;
+      const formData = new FormData();
+
+    //   const quillObj = quill?.current?.getEditor();
+      const range = quill?.getSelection();
+
+      if (file) {
+        formData.append('file', file);
+        formData.append("chat_id", chat_id);
+        formData.append('resource_type', 'raw');
+        formData.append("user_id", user_id);
+        const responseUpload = await fetch(
+          `/upload`,
+          { method: 'POST', body: formData }
+        );
+
+        data = await responseUpload.json();
+        if (data.error) {
+          console.error(data.error);
+        }
+        // console.log(data.file_data);
+        let k = data.file_data;
+        let temp = jQuery("#message").text();
+        for(let key in k){
+            if(k.hasOwnProperty(key)){
+                let tmp = k[key];
+                console.log(tmp.file_name, tmp.secure_url);
+                let file_name = '"'+tmp.file_name+'"';
+                // quill.insertEmbed(range.index, "image", tmp.secure_url);
+                temp += tmp.secure_url + " ";
+                
+            }
+        }
+        // jQuery("#message").text(temp);
+        quill.setContents([{insert: temp}]);
+        // message.text(temp);
+        
+      }
+    };
+  }
     var url_array = location.href.split('/');
     const chat_id = url_array[url_array.length - 1];
     const user_id = <%= data.user.id %>;
     const messageList = document.getElementById('message-list'); 
+    /*
+    const uppy = new Uppy.Uppy({
+            restrictions: {
+            maxFileSize: 5000000,
+            allowedFileTypes: ['image/*', '.pdf', '.doc', '.docx'],
+        },
+    })
+    
+    uppy.use(Uppy.Dashboard,{
+        trigger: "#upload-trigger",
+        hideUploadButton: true,
+        width: 600,
+        height: 400,
+    });
+    
+    uppy.use(Uppy.XHRUpload, {
+        endpoint: "/upload",
+        type: "POST",
+        fieldName: 'file'
+    })
+    */
     var lastMessageDate = null;
     var messages_created_at = [];
     const socket = io({
@@ -81,9 +182,10 @@
         socket.emit("getChatGroupMessages", user_chat_credentials);
         var messages = "";
         socket.on("messagesOfChatGroup", (data)=>{
+            console.log(data);
             messages = "";
             messages = data;
-            // console.log(messages);
+            console.log(messages);
             appendMessages(messages);
         });
     });
@@ -125,18 +227,25 @@
 
     jQuery("#chat-form").on("submit", function(e){
         e.preventDefault();
-        const messageInput = document.getElementById('message');
-        const message = messageInput.value.trim();
-
+       const message = jQuery("#message").text();
+        // const files = uppy.getFiles();
+        // console.log(message);
         if (message) {
             let msg_data = {};
             msg_data.message = message;
             msg_data.roomID = chat_id;
             msg_data.user_id = user_id;
+            // msg_data.files = files.map(file => ({
+            //                 name: file.name,
+            //                 type: file.type,
+            //                 buffer: file.data, // Send the file da
+            //             }));    
             socket.emit('chat message', msg_data); // Send message to server
 
             // Clear input field
-            messageInput.value = '';
+            // messageInput.value = '';
+            // uppy.reset();
+            quill.setContents([{insert: ""}]);
         }
     });
 
@@ -225,10 +334,25 @@
             }else{
                 username.innerText = msg.chat_of_user;
             }
-            
+
+            if(msg.chat_files != null){
+                let k = msg.chat_files;
+                for(let p in k){
+                    if(k.hasOwnProperty(p)){
+                        let z = k[p];
+                        if(msg.message.includes(p)){
+                            let mm = msg.message;
+                            let anchor_tag = `<a href="${z.image_url}" target="_blank" title="${z.file_name}">${z.file_name}</a>`;
+                            msg.message = mm.replace(p, anchor_tag);
+                        }
+                    }
+                }
+            }
+
+
             const messageContent = document.createElement('span');
             messageContent.classList.add("message_content");
-            messageContent.innerText = msg.message;
+            messageContent.innerHTML = msg.message;
             const timestamp = document.createElement('div');
             timestamp.classList.add('timestamp');
             if(msg.is_edited == true){
@@ -239,6 +363,8 @@
                 timestamp.innerText = msg.created_on;
             }
             newMessage.appendChild(username);
+            // console.log(msg.file_id);
+            
             newMessage.appendChild(messageContent);
             newMessage.appendChild(timestamp);
             if(msg.user_id == user_id){
@@ -247,6 +373,8 @@
                 }
                 
             }
+            
+            
             if(!message_id_list.includes(msg.message_id)){
                 messageList.appendChild(newMessage);
                 if(msg.user_id == user_id && msg.allow_edit){
@@ -272,25 +400,93 @@
         socket.connect();
     });
     var originalMessage = null;
+    // async function editMessage(msg_id) {
+    //     const msgObj = jQuery(`div[message_id='${msg_id}']`);
+    //     const messageContent = msgObj.find("span.message_content");
+    //     const editButton = msgObj.find("button.edit_action");
+    //     const deleteButton = msgObj.find("button.delete_action");
+    //     const saveButton = msgObj.find("button.save_button");
+    //     const cancelButton= msgObj.find("button.cancel_button");
+    //     originalMessage = messageContent.text();
+    //     const inputField = jQuery(`<textarea class='message_content' type='text' class='form-control' />`);
+    //     inputField.val(originalMessage);
+    //     messageContent.replaceWith(inputField);
+    //     editButton.hide();
+    //     deleteButton.hide();
+    //     saveButton.show();
+    //     cancelButton.show();
+    //     const newMessage = inputField.val().trim();
+    //     editButton.hide();
+    //     deleteButton.hide();
+    // }
     async function editMessage(msg_id) {
-        const msgObj = jQuery(`div[message_id='${msg_id}']`);
-        const messageContent = msgObj.find("span.message_content");
-        const editButton = msgObj.find("button.edit_action");
-        const deleteButton = msgObj.find("button.delete_action");
-        const saveButton = msgObj.find("button.save_button");
-        const cancelButton= msgObj.find("button.cancel_button");
-        originalMessage = messageContent.text();
-        const inputField = jQuery(`<textarea class='message_content' type='text' class='form-control' />`);
-        inputField.val(originalMessage);
-        messageContent.replaceWith(inputField);
-        editButton.hide();
-        deleteButton.hide();
-        saveButton.show();
-        cancelButton.show();
-        const newMessage = inputField.val().trim();
-        editButton.hide();
-        deleteButton.hide();
+    const msgObj = jQuery(`div[message_id='${msg_id}']`);
+    const messageContent = msgObj.find("span.message_content");
+    const editButton = msgObj.find("button.edit_action");
+    const deleteButton = msgObj.find("button.delete_action");
+    const saveButton = msgObj.find("button.save_button");
+    const cancelButton = msgObj.find("button.cancel_button");
+
+    // Save the original message for potential cancellation
+    const originalMessage = messageContent.html(); // Use `.html()` to preserve formatting
+    messageContent.hide(); // Hide the original content
+
+    // Create a container for the Quill editor
+    const quillContainer = jQuery(`<div class='quill-editor-container'></div>`);
+    messageContent.after(quillContainer);
+
+    // Initialize Quill editor
+    const quill = new Quill(quillContainer[0], {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: myToolbar,
+                handlers:{
+                    image: imageHandler
+                }
+            },
+        },
+    });
+
+    // Set the initial content of Quill
+    quill.clipboard.dangerouslyPasteHTML(originalMessage);
+
+    // Show and hide appropriate buttons
+    editButton.hide();
+    deleteButton.hide();
+    saveButton.show();
+    cancelButton.show();
+
+    // Save button click event
+    saveButton.off('click').on('click', async () => {
+        const editedMessage = quill.root.innerHTML.trim();
+        if (editedMessage) {
+            try {
+                await updateMessage(msg_id, editedMessage); // Update the message in the backend
+                messageContent.html(editedMessage); // Update the content in the UI
+            } catch (error) {
+                console.error('Error updating message:', error);
+            }
+        }
+        cleanup(); // Cleanup the Quill editor and buttons
+    });
+
+    // Cancel button click event
+    cancelButton.off('click').on('click', () => {
+        cleanup(); // Cleanup and restore original content
+    });
+
+    function cleanup() {
+        quillContainer.remove(); // Remove Quill editor
+        messageContent.show(); // Show the original content
+        editButton.show();
+        deleteButton.show();
+        saveButton.hide();
+        cancelButton.hide();
+        jQuery(".ql-toolbar").remove();
     }
+}
+
     
     async function updateMessage(msg_id){
         const msgObj = jQuery(`div[message_id='${msg_id}']`);

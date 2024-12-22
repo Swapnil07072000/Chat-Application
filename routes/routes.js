@@ -4,10 +4,11 @@ require("../config/modelsSync");
 
 const users = require(("../controllers/Users"));
 const chats = require(("../controllers/Chats"));
+const fileUpload = require("../controllers/FileUpload");
 
 const authenticatemiddleware = require("../middlewares/authenticate");
 const veriftJWTToken = require("../middlewares/verifyToken");
-const loginmiddleware = require("../middlewares/validators/loginmiddleware");
+const upload = require("../middlewares/multer-utf8");
 const { body, check} = require('express-validator');
 const router = express.Router();
 
@@ -90,5 +91,6 @@ router.get("/user/friend-requests", [veriftJWTToken.handle.bind(veriftJWTToken),
 
 router.get("/user/logout", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.signOut);
 
+router.post("/upload",[veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware), upload.single('file')], fileUpload.upload);
 
 module.exports = router;

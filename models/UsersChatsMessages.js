@@ -1,8 +1,11 @@
 require("dotenv").config();
+const path = require("path");
 const { Model, DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/db'); // Adjust the path as needed
 
 const CryptoService = require("../config/encryptdecrypt");
+const fileUpload = require("../models/FileUpload");
+const rootPath = path.resolve(__dirname, '../');
 
 class UsersChatsMessages extends Model {
 
@@ -12,6 +15,8 @@ class UsersChatsMessages extends Model {
     let limit = process.env.CHAT_MESSAGE_LIMIT;
     let edit_timeout = process.env.MSG_EDIT_TIMEOUT;
     let delete_timeout = process.env.MSG_DELETE_TIMEOUT;
+    var fileResponse = "";
+    const fileModel = new fileUpload();
     if(!limit) limit = 50;
     limit = parseInt(limit);
     try{
@@ -25,9 +30,10 @@ class UsersChatsMessages extends Model {
           ON (g.user_id = u.id)
           WHERE g.chat_id = '${chat_id}'
           AND g.published = '1'
-          ORDER BY id DESC
+          ORDER BY g.id DESC
           LIMIT ${limit}
         `;
+        fileResponse = await fileModel.getFilesMap(chat_id, null, null, 1);
       }else{
         query = `
           SELECT 
@@ -40,7 +46,8 @@ class UsersChatsMessages extends Model {
           AND g.message_id = '${message_id}'
           ORDER BY id DESC
           LIMIT 1;
-        `
+        `;
+        fileResponse = await fileModel.getFilesMap(chat_id, message_id, null, 1);
       }
       chat_records = await sequelize.query(
         query,
@@ -50,6 +57,7 @@ class UsersChatsMessages extends Model {
       );
       // console.log(query, chat_records);
     }catch(error){
+      console.log(error.message);
       return error;
     }
     
@@ -66,54 +74,62 @@ class UsersChatsMessages extends Model {
       // day: "numeric", 
       hour: "2-digit", minute: "2-digit"  
     };
-    // console.log(chat_records);
-    chat_records.forEach((per_record)=>{
-      // console.log(per_record);
-      let ind_record = {};
-      ind_record.chat_of_user = per_record.username;
-      ind_record.chat_id = per_record.chat_id;
-      if(per_record.user_id == user_id){
-        ind_record.message_id = per_record.message_id;
-      }else ind_record.message_id = null;
-      let decryptedText = cryptoInstance.decrypt(per_record.message);
-      ind_record.message = decryptedText;
-      ind_record.user_id = per_record.user_id;
-      ind_record.self = (per_record.user_id == user_id)?true:false;
-      let timeout_mins = ((new Date())-(new Date(per_record.created_at)))/(1000*60);
-      // console.log(timeout_mins);
-      if(timeout_mins <= edit_timeout){
-        ind_record.allow_edit = true;
-      }
-      if(timeout_mins <= delete_timeout){
-        ind_record.allow_delete = true;
-      }
-      let created_at_timestamp = new Date(per_record.created_at).getTime();
-      let updated_at_timestamp = new Date(per_record.updated_at).getTime()
-      // console.log(created_at_timestamp, updated_at_timestamp)
-      //   (created_at_timestamp != updated_at_timestamp), (per_record.created_at != per_record.updated_at));
-      if(created_at_timestamp != updated_at_timestamp){
-        // console.log(per_record.id);
-        /*
-        if(ind_record.allow_edit == true){
+    
+    const chatMap = fileResponse["chatMap"][chat_id]; 
+    for(let key in chat_records){
+      if(chat_records.hasOwnProperty(key)){
+        let ind_record = {};
+        let per_record = chat_records[key];  
+        ind_record.chat_of_user = per_record.username;
+        ind_record.chat_id = per_record.chat_id;
+        if(per_record.user_id == user_id){
+          ind_record.message_id = per_record.message_id;
+        }else ind_record.message_id = null;
+        let decryptedText = cryptoInstance.decrypt(per_record.message);
+        ind_record.message = decryptedText;
+        ind_record.user_id = per_record.user_id;
+        ind_record.self = (per_record.user_id == user_id)?true:false;
+        let timeout_mins = ((new Date())-(new Date(per_record.created_at)))/(1000*60);
+        // console.log(timeout_mins);
+        if(timeout_mins <= edit_timeout){
+          ind_record.allow_edit = true;
+        }
+        if(timeout_mins <= delete_timeout){
+          ind_record.allow_delete = true;
+        }
+        let created_at_timestamp = new Date(per_record.created_at).getTime();
+        let updated_at_timestamp = new Date(per_record.updated_at).getTime();
+        if(created_at_timestamp != updated_at_timestamp){
+          // console.log(per_record.id);
+          /*
+          if(ind_record.allow_edit == true){
+            ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+            ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+          }else{
+          */
+          ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
+          ind_record.updated_on = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, options));
+          ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
+          ind_record.timestamps_updated = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, display_options));
+          // }
+          
+          ind_record.is_edited = true;
+        }else{
           ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
           ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
-        }else{
-        */
-        ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
-        ind_record.updated_on = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, options));
-        ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
-        ind_record.timestamps_updated = ((new Date(per_record.updated_at)).toLocaleTimeString(undefined, display_options));
-        // }
+          ind_record.is_edited = false;
+        }
+        if(chatMap != undefined && chatMap[per_record.message_id] !== undefined){
+          let k = chatMap[per_record.message_id];
+          ind_record.chat_files = k;
+        }
         
-        ind_record.is_edited = true;
-      }else{
-        ind_record.created_on = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, options));
-        ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
-        ind_record.is_edited = false;
+        processed_chat_records.push(ind_record);
       }
-      
-      processed_chat_records.push(ind_record);
-    });
+    }
+
+    
+    // console.log(processed_chat_records.reverse());
     return processed_chat_records.reverse();
   }
 }
