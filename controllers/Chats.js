@@ -188,7 +188,7 @@ class Chats{
             }
             const user = req.session.user;
             const userReq = new userrequests();
-            const [is_error, friendRequests, friendRequestsFromOthers] = await userReq.getAllFriendRequestsForUser(user.id);    
+            var [is_error, friendRequests, friendRequestsFromOthers] = await userReq.getAllFriendRequestsForUser(user.id);    
         } catch (error) {
             
         }

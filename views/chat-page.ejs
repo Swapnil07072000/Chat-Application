@@ -1,21 +1,19 @@
-
 <link rel="stylesheet" href="/css/style.css">
-<!-- <link rel="stylesheet" href="/css/uppy.min.css"> -->
-<link rel="stylesheet" href="/css/quill.snow.css">
+<script type="module">
+    import {EmojiButton} from "/js/index.min.js"
+    // console.log(a, "A");
+</script>
 <div class="container-fluid chat-container">
-    <!-- Sidebar -->
     <div class="sidebar">
-        <!-- Button to open the modal -->
         <a href="/user/chats" class="btn btn-primary">Back</a>
         <% if(data.is_group == 1){ %>
             <h6>Group Info:</h6>
             <p id="group-description"><%= data.group_description %></p>
-            <!-- User List Section -->
             <h6>Chat Members:</h6>
             <ul id="user-list" class="list-group">
                 <% data.chat_group_users_list.forEach(user => { %>
                     <li class="list-group-item">
-                        <a href="/user/user-profile/<%= data.user.id %>" target="_blank"><%= user.username %></a>
+                        <a href="/user/user-profile/<%= user.id %>" target="_blank"><%= user.username %></a>
                         <% if(user.is_self == '1'){ %>
                             <span class="badge bg-primary ms-2">You</span>
                         <% } %>
@@ -27,7 +25,7 @@
             <ul id="user-list" class="list-group">
                 <% data.chat_group_users_list.forEach(user => { %>
                     <li class="list-group-item">
-                        <a href="/user/user-profile/<%= data.user.id %>" target="_blank"><%= user.username %></a>
+                        <a href="/user/user-profile/<%= user.id %>" target="_blank"><%= user.username %></a>
                         <% if(user.is_self == '1'){ %>
                             <span class="badge bg-primary ms-2">You</span>
                         <% } %>
@@ -37,509 +35,191 @@
         <% } %>
     </div>
 
-    <!-- Chat Box -->
     <div class="chat-box">
-        <!-- Group Name Display -->
         <% if(data.is_group == 1){ %>
             <h4 class="text-center border border-primary p-2 rounded mb-3">
                 <span id="group-name"><%= data.chat_group_name %></span>
             </h4>
         <% } %>
-        
-        <div class="message-list" id="message-list">
-        </div>
+        <div class="message-list" id="message-list"></div>
         <div id="scroll_bottom"></div>
         <% if(data.is_present_in_group == 1){ %>
-            <!-- Message Input -->
-            <form id="chat-form" class="d-flex">
-                 <!-- <button id="upload-trigger" type="button" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-paperclip"></i> Attach File
-                </button> -->
-                <!-- <input type="text"  placeholder="Type your message here..." required> -->
-                <div class="form-control me-2" id="message"></div>
+            <form id="chat-form" class="d-flex align-items-center">
+                <button type="button" id="emoji-button" class="btn btn-outline-secondary me-2">😀</button>
+                <input type="text" id="message" class="form-control me-2" placeholder="Type your message here..." required>
                 <button type="submit" class="btn btn-primary">Send</button>
             </form>
         <% } %>
     </div>
 </div>
-<!-- <script src="/js/uppy.min.js"></script> -->
-<script src="/js/quill.min.js"></script>
 <style>
-    img {
-  width: 100%; /* or a fixed width like 300px */
-  height: auto; /* Maintain aspect ratio */
-  object-fit: contain; /* Ensures the image fits without distortion */
+img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.edit-textarea {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 </style>
-<script>
-    const myToolbar = [
-        ['bold', 'italic', 'underline'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'image'], 
-        ['clean'],
-      ];
-    const quill = new Quill('#message', {
-        theme: 'snow',
-        placeholder: 'Type your message...',
-        modules: {
-            toolbar: {
-                container: myToolbar,
-                handlers:{
-                    image: imageHandler
-                }
-            },
-        }
-    });
- function imageHandler(){
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute("multiple", "multiple")
-    input.setAttribute('accept', 'image/*');
-    input.click();
-    input.onchange = async () => {
-      const file = input.files ? input.files[0] : null;
-      let data = null;
-      const formData = new FormData();
+<script type="module">
+    import {EmojiButton} from "/js/index.min.js"
+    // console.log(a, "A");
 
-    //   const quillObj = quill?.current?.getEditor();
-      const range = quill?.getSelection();
-
-      if (file) {
-        formData.append('file', file);
-        formData.append("chat_id", chat_id);
-        formData.append('resource_type', 'raw');
-        formData.append("user_id", user_id);
-        const responseUpload = await fetch(
-          `/upload`,
-          { method: 'POST', body: formData }
-        );
-
-        data = await responseUpload.json();
-        if (data.error) {
-          console.error(data.error);
-        }
-        // console.log(data.file_data);
-        let k = data.file_data;
-        let temp = jQuery("#message").text();
-        for(let key in k){
-            if(k.hasOwnProperty(key)){
-                let tmp = k[key];
-                console.log(tmp.file_name, tmp.secure_url);
-                let file_name = '"'+tmp.file_name+'"';
-                // quill.insertEmbed(range.index, "image", tmp.secure_url);
-                temp += tmp.secure_url + " ";
-                
-            }
-        }
-        // jQuery("#message").text(temp);
-        quill.setContents([{insert: temp}]);
-        // message.text(temp);
-        
-      }
-    };
-  }
-    var url_array = location.href.split('/');
-    const chat_id = url_array[url_array.length - 1];
+document.addEventListener("DOMContentLoaded", function() {
+    const chat_id = location.href.split('/').pop();
     const user_id = <%= data.user.id %>;
-    const messageList = document.getElementById('message-list'); 
-    /*
-    const uppy = new Uppy.Uppy({
-            restrictions: {
-            maxFileSize: 5000000,
-            allowedFileTypes: ['image/*', '.pdf', '.doc', '.docx'],
-        },
-    })
-    
-    uppy.use(Uppy.Dashboard,{
-        trigger: "#upload-trigger",
-        hideUploadButton: true,
-        width: 600,
-        height: 400,
+    const messageList = document.getElementById('message-list');
+    const input = document.querySelector('#message');
+    const emojiButton = document.querySelector('#emoji-button');
+    const picker = new EmojiButton();
+    // const picker = null
+    picker.on('emoji', emoji => {
+        // console.log(emoji);
+        input.value += emoji.emoji;
+    });
+
+
+    emojiButton.addEventListener('click', () => {
+        picker.togglePicker(emojiButton);
     });
     
-    uppy.use(Uppy.XHRUpload, {
-        endpoint: "/upload",
-        type: "POST",
-        fieldName: 'file'
-    })
-    */
-    var lastMessageDate = null;
-    var messages_created_at = [];
     const socket = io({
         reconnection: true,
         reconnectionAttempts: Infinity,
-        reconnectionDelay: 100,   
+        reconnectionDelay: 100,
         reconnectionDelayMax: 500,
         withCredentials: true
     });
-    var user_chat_credentials = {};
-    var get_messages = false;
+
     jQuery(document).ready(function(){ 
         socket.emit("joinChatGroup", chat_id);
-        
-        user_chat_credentials.chat_id = chat_id;
-        user_chat_credentials.user_id = user_id;
-        socket.emit("getChatGroupMessages", user_chat_credentials);
-        var messages = "";
-        socket.on("messagesOfChatGroup", (data)=>{
-            console.log(data);
-            messages = "";
-            messages = data;
-            console.log(messages);
-            appendMessages(messages);
-        });
+        socket.emit("getChatGroupMessages", { chat_id, user_id });
+        socket.on("messagesOfChatGroup", (data) => appendMessages(data));
     });
-    socket.on("redirect_to_login", (url)=>{
-        console.log(url);
-        // window.location.href = url;
-    })
-    setInterval(() => {
-        socket.emit("ping");
-        socket.on("pong", ()=>{
-            console.log("pong");
-        })
-        // socket.connect();
-    }, 5000);
-    setInterval(()=>{
-        checkValidUpdateDeleteMessages();
-    }, 100);
-    
-    function checkValidUpdateDeleteMessages(){
-        jQuery(".user").each(function(){
-            // console.log(jQuery(this));
-            const tmp_div = jQuery(this);
-            const timestamp = jQuery(tmp_div).find("div.timestamp");
-            const timestamp_val = jQuery(timestamp).attr("data-timestamp");
-            const time_diff = (new Date() - new Date(timestamp_val))/(1000*60);
-            const actions_div = jQuery(tmp_div).find("div.message-actions");
-            const msg_id = jQuery(this).attr("message_id");
-            // console.log(time_diff < 20);
-            if(time_diff > 2){
-                if(jQuery(actions_div).length > 0){
-                    // console.log(jQuery(actions_div).length);
-                    // console.log(time_diff, jQuery(tmp_div).attr("message_id"));
-                    jQuery(actions_div).html("");
-                    revertChanges(msg_id);
-                }
-            }
-        })
-    }
 
     jQuery("#chat-form").on("submit", function(e){
         e.preventDefault();
-       const message = jQuery("#message").text();
-        // const files = uppy.getFiles();
-        // console.log(message);
+        const message = jQuery("#message").val();
         if (message) {
-            let msg_data = {};
-            msg_data.message = message;
-            msg_data.roomID = chat_id;
-            msg_data.user_id = user_id;
-            // msg_data.files = files.map(file => ({
-            //                 name: file.name,
-            //                 type: file.type,
-            //                 buffer: file.data, // Send the file da
-            //             }));    
-            socket.emit('chat message', msg_data); // Send message to server
-
-            // Clear input field
-            // messageInput.value = '';
-            // uppy.reset();
-            quill.setContents([{insert: ""}]);
+            socket.emit('chat message', { message, roomID: chat_id, user_id });
+            jQuery("#message").val("");
         }
     });
 
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString(undefined, {
-            weekday: "short", year: "numeric", month: "short", day: "numeric"
-        });
-    }
+    function appendMessages(messages){
+        messages.forEach(msg => {
+            const existing = messageList.querySelector(`div[message_id='${msg.message_id}']`);
+            if (existing) existing.remove();
 
-    function appendDateDivider(date) {
-        const dateDivider = document.createElement('div');
-        dateDivider.classList.add('d-flex', 'align-items-center', 'my-3'); 
-        const leftLine = document.createElement('div');
-        leftLine.classList.add('flex-grow-1', 'border-bottom', 'border-muted', 'me-2');
-        const dateText = document.createElement('span');
-        dateText.classList.add('text-muted', 'fw-bold', 'px-2');
-        dateText.innerText = date;
-        const rightLine = document.createElement('div');
-        rightLine.classList.add('flex-grow-1', 'border-bottom', 'border-muted', 'ms-2');
-        dateDivider.appendChild(leftLine);
-        dateDivider.appendChild(dateText);
-        dateDivider.appendChild(rightLine);
-        messageList.appendChild(dateDivider);
-    }
+            const div = document.createElement('div');
+            div.className = `message ${(msg.user_id === user_id) ? 'user' : 'other'} p-4`;
+            div.setAttribute("message_id", msg.message_id);
 
+            const username = document.createElement('div');
+            username.className = 'username';
+            username.innerText = msg.chat_of_user;
 
-
-    function appendMessages(messages, message_id_list=[]){
-        messages.forEach(msg => {   
-            const messageDate = new Date(msg.created_on).toDateString();
-            if (lastMessageDate !== messageDate) {
-                lastMessageDate = messageDate; 
-                appendDateDivider(formatDate(msg.created_on)); 
-            }
-            const newMessage = document.createElement('div');
-            newMessage.classList.add('message', (msg.user_id === user_id) ? 'user' : 'other', "p-4");
-            newMessage.setAttribute('message_id', msg.message_id);
-            var username = "";
-            let saveButton = null, cancelButton = null;
-            if(msg.user_id != user_id){
-                username = document.createElement('a');
-                username.classList.add('username');
-                username.href = "/user/user-profile/"+msg.user_id;
-                username.target = "_blank";
-            } else {
-                var actions = document.createElement('div');
-                actions.classList.add('message-actions', 'btn-group');
-                if(msg.allow_edit){
-                    const editButton = document.createElement('button');
-                    editButton.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'edit_action');
-                    editButton.innerHTML = '<i class="fas fa-edit"></i>';
-                    editButton.onclick = () => editMessage(msg.message_id);
-                    actions.appendChild(editButton);
-
-                    saveButton = document.createElement('button');
-                    saveButton.classList.add('btn', 'btn-sm', 'btn-success', 'save_button');
-                    saveButton.innerHTML = "Save"
-                    saveButton.onclick = () => updateMessage(msg.message_id);
-                    actions.appendChild(saveButton);
-                    cancelButton = document.createElement('button');
-                    cancelButton.classList.add('btn', 'btn-sm', 'btn-warning', 'cancel_button');
-                    cancelButton.innerHTML = "Cancel"
-                    cancelButton.onclick = () => revertChanges(msg.message_id);
-                    actions.appendChild(cancelButton);
-                }
-                
-                if(msg.allow_delete){
-                    const deleteButton = document.createElement('button');
-                    deleteButton.classList.add('btn', 'btn-sm', 'btn-outline-danger', 'delete_action');
-                    deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-                    deleteButton.onclick = () => deleteMessage(msg.message_id);
-                    actions.appendChild(deleteButton);
-                }
-                
-                username = document.createElement('div');
-                username.classList.add('username'); 
-            }
-            if(msg.is_edited == true){
-                edited = document.createElement('span');
-                edited.classList.add("badge",  "bg-info", "ms-2");
-                edited.innerText = "Edited";
-                username.innerText = msg.chat_of_user;
+            if (msg.is_edited) {
+                const edited = document.createElement('span');
+                edited.className = 'badge bg-info ms-2';
+                edited.innerText = 'Edited';
                 username.appendChild(edited);
-
-            }else{
-                username.innerText = msg.chat_of_user;
             }
 
-            if(msg.chat_files != null){
-                let k = msg.chat_files;
-                for(let p in k){
-                    if(k.hasOwnProperty(p)){
-                        let z = k[p];
-                        if(msg.message.includes(p)){
-                            let mm = msg.message;
-                            let anchor_tag = `<a href="${z.image_url}" target="_blank" title="${z.file_name}">${z.file_name}</a>`;
-                            msg.message = mm.replace(p, anchor_tag);
-                        }
-                    }
-                }
-            }
+            const content = document.createElement('span');
+            content.className = 'message_content';
+            content.innerHTML = msg.message;
 
-
-            const messageContent = document.createElement('span');
-            messageContent.classList.add("message_content");
-            messageContent.innerHTML = msg.message;
             const timestamp = document.createElement('div');
-            timestamp.classList.add('timestamp');
-            if(msg.is_edited == true){
-                timestamp.setAttribute("data-timestamp", msg.updated_on);
-                timestamp.innerText = msg.updated_on;
-            }else{
-                timestamp.setAttribute("data-timestamp", msg.created_on);
-                timestamp.innerText = msg.created_on;
-            }
-            newMessage.appendChild(username);
-            // console.log(msg.file_id);
-            
-            newMessage.appendChild(messageContent);
-            newMessage.appendChild(timestamp);
-            if(msg.user_id == user_id){
-                if(msg.allow_edit || msg.allow_delete){
-                    newMessage.appendChild(actions);
+            timestamp.className = 'timestamp';
+            timestamp.setAttribute('data-timestamp', msg.created_on);
+            timestamp.innerText = msg.created_on;
+
+            div.appendChild(username);
+            div.appendChild(content);
+            div.appendChild(timestamp);
+
+            if (msg.user_id === user_id && (msg.allow_edit || msg.allow_delete)) {
+                const actions = document.createElement('div');
+                actions.className = 'message-actions btn-group mt-2';
+
+                if (msg.allow_edit) {
+                    actions.innerHTML += '<button class="btn btn-sm btn-outline-secondary edit_action">Edit</button>';
+                    actions.innerHTML += '<button class="btn btn-sm btn-success save_button" style="display:none;">Save</button>';
+                    actions.innerHTML += '<button class="btn btn-sm btn-warning cancel_button" style="display:none;">Cancel</button>';
                 }
-                
-            }
-            
-            
-            if(!message_id_list.includes(msg.message_id)){
-                messageList.appendChild(newMessage);
-                if(msg.user_id == user_id && msg.allow_edit){
-                    jQuery(saveButton).hide();
-                    jQuery(cancelButton).hide();
+                if (msg.allow_delete) {
+                    actions.innerHTML += '<button class="btn btn-sm btn-outline-danger delete_action">Delete</button>';
                 }
-            }else{
-                const msgObj = jQuery(`div[message_id='${msg.message_id}']`);
-                const username_edited = msgObj.find("div.username");
-                const editedObj = username_edited.find("span.badge");
-                if(editedObj.length == 0){
-                    username_edited.closest("div").append(edited);    
-                }
+                div.appendChild(actions);
             }
-            
+
+            messageList.appendChild(div);
         });
         messageList.scrollTop = messageList.scrollHeight;
+        attachEditDeleteEvents();
     }
-    socket.on("chat message", (message) => {
-        appendMessages(message);
-    });
-    socket.on('disconnect', () => {
-        socket.connect();
-    });
-    var originalMessage = null;
-    // async function editMessage(msg_id) {
-    //     const msgObj = jQuery(`div[message_id='${msg_id}']`);
-    //     const messageContent = msgObj.find("span.message_content");
-    //     const editButton = msgObj.find("button.edit_action");
-    //     const deleteButton = msgObj.find("button.delete_action");
-    //     const saveButton = msgObj.find("button.save_button");
-    //     const cancelButton= msgObj.find("button.cancel_button");
-    //     originalMessage = messageContent.text();
-    //     const inputField = jQuery(`<textarea class='message_content' type='text' class='form-control' />`);
-    //     inputField.val(originalMessage);
-    //     messageContent.replaceWith(inputField);
-    //     editButton.hide();
-    //     deleteButton.hide();
-    //     saveButton.show();
-    //     cancelButton.show();
-    //     const newMessage = inputField.val().trim();
-    //     editButton.hide();
-    //     deleteButton.hide();
-    // }
-    async function editMessage(msg_id) {
-    const msgObj = jQuery(`div[message_id='${msg_id}']`);
-    const messageContent = msgObj.find("span.message_content");
-    const editButton = msgObj.find("button.edit_action");
-    const deleteButton = msgObj.find("button.delete_action");
-    const saveButton = msgObj.find("button.save_button");
-    const cancelButton = msgObj.find("button.cancel_button");
 
-    // Save the original message for potential cancellation
-    const originalMessage = messageContent.html(); // Use `.html()` to preserve formatting
-    messageContent.hide(); // Hide the original content
+    function attachEditDeleteEvents() {
+        jQuery(".edit_action").off().on("click", function() {
+            const msgDiv = jQuery(this).closest(".message");
+            const msgId = msgDiv.attr("message_id");
+            const contentSpan = msgDiv.find(".message_content");
 
-    // Create a container for the Quill editor
-    const quillContainer = jQuery(`<div class='quill-editor-container'></div>`);
-    messageContent.after(quillContainer);
+            if (msgDiv.find("textarea").length > 0) return;
 
-    // Initialize Quill editor
-    const quill = new Quill(quillContainer[0], {
-        theme: 'snow',
-        modules: {
-            toolbar: {
-                container: myToolbar,
-                handlers:{
-                    image: imageHandler
-                }
-            },
-        },
-    });
+            const originalText = contentSpan.html();
+            const textarea = jQuery(`<textarea class='form-control edit-textarea'>${originalText}</textarea>`);
+            contentSpan.hide().after(textarea);
 
-    // Set the initial content of Quill
-    quill.clipboard.dangerouslyPasteHTML(originalMessage);
+            msgDiv.find(".edit_action, .delete_action").hide();
+            msgDiv.find(".save_button, .cancel_button").show();
 
-    // Show and hide appropriate buttons
-    editButton.hide();
-    deleteButton.hide();
-    saveButton.show();
-    cancelButton.show();
-
-    // Save button click event
-    saveButton.off('click').on('click', async () => {
-        const editedMessage = quill.root.innerHTML.trim();
-        if (editedMessage) {
-            try {
-                await updateMessage(msg_id, editedMessage); // Update the message in the backend
-                messageContent.html(editedMessage); // Update the content in the UI
-            } catch (error) {
-                console.error('Error updating message:', error);
-            }
-        }
-        cleanup(); // Cleanup the Quill editor and buttons
-    });
-
-    // Cancel button click event
-    cancelButton.off('click').on('click', () => {
-        cleanup(); // Cleanup and restore original content
-    });
-
-    function cleanup() {
-        quillContainer.remove(); // Remove Quill editor
-        messageContent.show(); // Show the original content
-        editButton.show();
-        deleteButton.show();
-        saveButton.hide();
-        cancelButton.hide();
-        jQuery(".ql-toolbar").remove();
-    }
-}
-
-    
-    async function updateMessage(msg_id){
-        const msgObj = jQuery(`div[message_id='${msg_id}']`);
-        const messageContent = msgObj.find("textarea.message_content");
-        newMessage = jQuery(messageContent).val();
-        try {
-            const data = { message_id: msg_id, roomID: chat_id, user_id: user_id ,message: newMessage }
-            await socket.emit("edit message", data);
-            socket.on("edit message", (updateRecord)=>{
-                let message_id_list = [];
-                message_id_list.push(msg_id);
-                appendMessages(updateRecord, message_id_list);
+            msgDiv.find(".save_button").off().on("click", function() {
+                const newText = textarea.val();
+                updateMessage(msgId, newText);
             });
-        } catch (error) {
-            console.error("Error updating message:", error);
-        }
-        revertChanges(msg_id, newMessage);
-    } 
 
-    async function revertChanges(msg_id, updateMessage=null) {
-        const msgObj = jQuery(`div[message_id='${msg_id}']`);
-        const messageContent = msgObj.find("textarea.message_content");
-        const editButton = msgObj.find("button.edit_action");
-        const deleteButton = msgObj.find("button.delete_action");
-        const saveButton = msgObj.find("button.save_button");
-        const cancelButton= msgObj.find("button.cancel_button");
-        editButton.show();
-        deleteButton.show();
-        saveButton.hide();
-        cancelButton.hide();
-        if(updateMessage){
-            originalMessage = updateMessage;
-        }
-        const inputField = `<span class='message_content'>${originalMessage}</span>`;
-        messageContent.replaceWith(inputField);
-        originalMessage = null;
-    }
+            msgDiv.find(".cancel_button").off().on("click", function() {
+                textarea.remove();
+                contentSpan.show();
+                msgDiv.find(".edit_action, .delete_action").show();
+                msgDiv.find(".save_button, .cancel_button").hide();
+            });
+        });
 
-    async function deleteMessage(msg_id){
-        let cnf = confirm("Are you sure you want to delete this messages");
-        if(cnf){
-            let delete_data = {
-                msg_id: msg_id,
-                roomID: chat_id,
-                user_id: user_id,
+        jQuery(".delete_action").off().on("click", function() {
+            const msgDiv = jQuery(this).closest(".message");
+            const msgId = msgDiv.attr("message_id");
+            if (confirm("Are you sure you want to delete this message?")) {
+                socket.emit("delete message", { msg_id: msgId, roomID: chat_id, user_id });
             }
-            socket.emit("delete message", delete_data);
-            socket.on("delete message", (resp)=>{
-                const msgObj = jQuery(`div[message_id='${resp.msg_id}']`);
-                jQuery(msgObj).remove();
-            })
-        }
-
+        });
     }
 
+    socket.on("chat message", (message) => appendMessages(message));
+    socket.on("delete message", (resp) => {
+        jQuery(`div[message_id='${resp.msg_id}']`).remove();
+    });
+    socket.on("edit message", (updatedMessages) => {
+        updatedMessages.forEach(msg => {
+            const existing = jQuery(`div[message_id='${msg.message_id}']`);
+            if (existing.length) existing.remove();
+        });
+        appendMessages(updatedMessages);
+    });
+    socket.on("disconnect", () => socket.connect());
+
+    function updateMessage(msg_id, newMessage) {
+        socket.emit("edit message", {
+            message_id: msg_id,
+            roomID: chat_id,
+            user_id,
+            message: newMessage
+        });
+    }
+});
 </script>
