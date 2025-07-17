@@ -70,7 +70,8 @@ app.use((err, req, res, next) => {
 
 
 const port = process.env.PORT || 9001;
+const host = process.env.HOST_NAME || "localhost";
 
-server.listen(port, ()=>{
-    console.log("App running on port "+port);
+server.listen(port, host, ()=>{
+    console.log("App running on port "+port+" and hostname "+host);
 })

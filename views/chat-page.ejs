@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="/css/style.css">
 <script type="module">
-    import {EmojiButton} from "/js/index.min.js"
-    // console.log(a, "A");
+    import { EmojiButton } from "/js/index.min.js";
 </script>
 <div class="container-fluid chat-container">
     <div class="sidebar">
@@ -65,161 +64,185 @@ img {
 }
 </style>
 <script type="module">
-    import {EmojiButton} from "/js/index.min.js"
-    // console.log(a, "A");
+    import { EmojiButton } from "/js/index.min.js";
+     const picker = new EmojiButton();
+    function addEditEmoji(msg_id){
+        const emojiButtonEdit = document.querySelector('#emoji-button_'+msg_id);
+        if(emojiButtonEdit){
+            emojiButtonEdit.addEventListener('click', () => {
+                picker.togglePicker(emojiButtonEdit);
+            });
+        }
+    }
 
-document.addEventListener("DOMContentLoaded", function() {
-    const chat_id = location.href.split('/').pop();
-    const user_id = <%= data.user.id %>;
-    const messageList = document.getElementById('message-list');
-    const input = document.querySelector('#message');
-    const emojiButton = document.querySelector('#emoji-button');
-    const picker = new EmojiButton();
-    // const picker = null
-    picker.on('emoji', emoji => {
-        // console.log(emoji);
-        input.value += emoji.emoji;
-    });
+    document.addEventListener("DOMContentLoaded", function () {
+        const chat_id = location.href.split('/').pop();
+        const user_id = <%= data.user.id %>;
+        const messageList = document.getElementById('message-list');
+        const input = document.querySelector('#message');
+        const emojiButton = document.querySelector('#emoji-button');
+        
+       
+        let activeTextarea = null;
+
+        picker.on('emoji', emoji => {
+            if (activeTextarea) {
+                activeTextarea.value += emoji.emoji;
+            } else {
+                input.value += emoji.emoji;
+            }
+        });
+
+        emojiButton.addEventListener('click', () => {
+            picker.togglePicker(emojiButton);
+        });
+        
+        
+
+        const socket = io({
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 100,
+            reconnectionDelayMax: 500,
+            withCredentials: true
+        });
+
+        jQuery(document).ready(function () {
+            socket.emit("joinChatGroup", chat_id);
+            socket.emit("getChatGroupMessages", { chat_id, user_id });
+            socket.on("messagesOfChatGroup", (data) => appendMessages(data));
+        });
+
+        jQuery("#chat-form").on("submit", function (e) {
+            e.preventDefault();
+            const message = jQuery("#message").val();
+            if (message) {
+                socket.emit('chat message', { message, roomID: chat_id, user_id });
+                jQuery("#message").val("");
+            }
+        });
+
+        function appendMessages(messages) {
+            messages.forEach(msg => {
+                let msgDiv = messageList.querySelector(`div[message_id='${msg.message_id}']`);
+
+                if (!msgDiv) {
+                    msgDiv = document.createElement('div');
+                    msgDiv.className = `message ${(msg.user_id === user_id) ? 'user' : 'other'} p-4`;
+                    msgDiv.setAttribute("message_id", msg.message_id);
+                    messageList.appendChild(msgDiv);
+                } else {
+                    msgDiv.innerHTML = "";
+                }
+
+                const username = document.createElement('div');
+                username.className = 'username';
+                username.innerText = msg.chat_of_user;
+
+                if (msg.is_edited) {
+                    const edited = document.createElement('span');
+                    edited.className = 'badge bg-info ms-2';
+                    edited.innerText = 'Edited';
+                    username.appendChild(edited);
+                }
+
+                const content = document.createElement('span');
+                content.className = 'message_content';
+                content.textContent = msg.message;
+
+                const timestamp = document.createElement('div');
+                timestamp.className = 'timestamp';
+                timestamp.setAttribute('data-timestamp', msg.created_on);
+                timestamp.innerText = msg.created_on;
+
+                msgDiv.appendChild(username);
+                msgDiv.appendChild(content);
+                msgDiv.appendChild(timestamp);
+
+                if (msg.user_id === user_id && (msg.allow_edit || msg.allow_delete)) {
+                    const actions = document.createElement('div');
+                    actions.className = 'message-actions btn-group mt-2';
+
+                    if (msg.allow_edit) {
+                        actions.innerHTML += '<button class="btn btn-sm btn-outline-secondary edit_action">Edit</button>';
+                        actions.innerHTML += '<button class="btn btn-sm btn-success save_button" style="display:none;">Save</button>';
+                        actions.innerHTML += '<button class="btn btn-sm btn-warning cancel_button" style="display:none;">Cancel</button>';
+                    }
+                    if (msg.allow_delete) {
+                        actions.innerHTML += '<button class="btn btn-sm btn-outline-danger delete_action">Delete</button>';
+                    }
+                    msgDiv.appendChild(actions);
+                }
+            });
+
+            messageList.scrollTop = messageList.scrollHeight;
+            attachEditDeleteEvents();
+        }
+
+        function attachEditDeleteEvents() {
+            jQuery(".edit_action").off().on("click", function () {
+                const msgDiv = jQuery(this).closest(".message");
+                const msgId = msgDiv.attr("message_id");
+                const contentSpan = msgDiv.find(".message_content");
+
+                if (msgDiv.find("textarea").length > 0) return;
+
+                const originalText = contentSpan.text();
+                const wrapper = jQuery(`<div class='d-flex align-items-center gap-2 mb-1 w-100'></div>`);
+                const emojiButton = jQuery(`<button type="button"  id="emoji-button_${msgId}" class="btn btn-outline-secondary">😀</button>`);
+                const textarea = jQuery(`<textarea class='form-control edit-textarea flex-grow-1' rows="2">${originalText}</textarea>`);
+                wrapper.append(emojiButton).append(textarea);
+                contentSpan.hide().after(wrapper);
+                activeTextarea = textarea[0];
+                addEditEmoji(msgId);
 
 
-    emojiButton.addEventListener('click', () => {
-        picker.togglePicker(emojiButton);
-    });
-    
-    const socket = io({
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 100,
-        reconnectionDelayMax: 500,
-        withCredentials: true
-    });
 
-    jQuery(document).ready(function(){ 
-        socket.emit("joinChatGroup", chat_id);
-        socket.emit("getChatGroupMessages", { chat_id, user_id });
-        socket.on("messagesOfChatGroup", (data) => appendMessages(data));
-    });
+                msgDiv.find(".edit_action, .delete_action").hide();
+                msgDiv.find(".save_button, .cancel_button").show();
 
-    jQuery("#chat-form").on("submit", function(e){
-        e.preventDefault();
-        const message = jQuery("#message").val();
-        if (message) {
-            socket.emit('chat message', { message, roomID: chat_id, user_id });
-            jQuery("#message").val("");
+                msgDiv.find(".save_button").off().on("click", function () {
+                    const newText = textarea.val();
+                    updateMessage(msgId, newText);
+                });
+
+                msgDiv.find(".cancel_button").off().on("click", function () {
+                    textarea.remove();
+                    emojiButton.remove();
+                    contentSpan.show();
+                    msgDiv.find(".edit_action, .delete_action").show();
+                    msgDiv.find(".save_button, .cancel_button").hide();
+                    activeTextarea = null;
+                    emojiButton = null;
+                });
+            });
+
+            jQuery(".delete_action").off().on("click", function () {
+                const msgDiv = jQuery(this).closest(".message");
+                const msgId = msgDiv.attr("message_id");
+                if (confirm("Are you sure you want to delete this message?")) {
+                    socket.emit("delete message", { msg_id: msgId, roomID: chat_id, user_id });
+                }
+            });
+        }
+
+        socket.on("chat message", (message) => appendMessages(message));
+        socket.on("delete message", (resp) => {
+            jQuery(`div[message_id='${resp.msg_id}']`).remove();
+        });
+        socket.on("edit message", (updatedMessages) => {
+            appendMessages(updatedMessages);
+        });
+        socket.on("disconnect", () => socket.connect());
+
+        function updateMessage(msg_id, newMessage) {
+            socket.emit("edit message", {
+                message_id: msg_id,
+                roomID: chat_id,
+                user_id,
+                message: newMessage
+            });
+            activeTextarea = null;
         }
     });
-
-    function appendMessages(messages){
-        messages.forEach(msg => {
-            const existing = messageList.querySelector(`div[message_id='${msg.message_id}']`);
-            if (existing) existing.remove();
-
-            const div = document.createElement('div');
-            div.className = `message ${(msg.user_id === user_id) ? 'user' : 'other'} p-4`;
-            div.setAttribute("message_id", msg.message_id);
-
-            const username = document.createElement('div');
-            username.className = 'username';
-            username.innerText = msg.chat_of_user;
-
-            if (msg.is_edited) {
-                const edited = document.createElement('span');
-                edited.className = 'badge bg-info ms-2';
-                edited.innerText = 'Edited';
-                username.appendChild(edited);
-            }
-
-            const content = document.createElement('span');
-            content.className = 'message_content';
-            content.innerHTML = msg.message;
-
-            const timestamp = document.createElement('div');
-            timestamp.className = 'timestamp';
-            timestamp.setAttribute('data-timestamp', msg.created_on);
-            timestamp.innerText = msg.created_on;
-
-            div.appendChild(username);
-            div.appendChild(content);
-            div.appendChild(timestamp);
-
-            if (msg.user_id === user_id && (msg.allow_edit || msg.allow_delete)) {
-                const actions = document.createElement('div');
-                actions.className = 'message-actions btn-group mt-2';
-
-                if (msg.allow_edit) {
-                    actions.innerHTML += '<button class="btn btn-sm btn-outline-secondary edit_action">Edit</button>';
-                    actions.innerHTML += '<button class="btn btn-sm btn-success save_button" style="display:none;">Save</button>';
-                    actions.innerHTML += '<button class="btn btn-sm btn-warning cancel_button" style="display:none;">Cancel</button>';
-                }
-                if (msg.allow_delete) {
-                    actions.innerHTML += '<button class="btn btn-sm btn-outline-danger delete_action">Delete</button>';
-                }
-                div.appendChild(actions);
-            }
-
-            messageList.appendChild(div);
-        });
-        messageList.scrollTop = messageList.scrollHeight;
-        attachEditDeleteEvents();
-    }
-
-    function attachEditDeleteEvents() {
-        jQuery(".edit_action").off().on("click", function() {
-            const msgDiv = jQuery(this).closest(".message");
-            const msgId = msgDiv.attr("message_id");
-            const contentSpan = msgDiv.find(".message_content");
-
-            if (msgDiv.find("textarea").length > 0) return;
-
-            const originalText = contentSpan.html();
-            const textarea = jQuery(`<textarea class='form-control edit-textarea'>${originalText}</textarea>`);
-            contentSpan.hide().after(textarea);
-
-            msgDiv.find(".edit_action, .delete_action").hide();
-            msgDiv.find(".save_button, .cancel_button").show();
-
-            msgDiv.find(".save_button").off().on("click", function() {
-                const newText = textarea.val();
-                updateMessage(msgId, newText);
-            });
-
-            msgDiv.find(".cancel_button").off().on("click", function() {
-                textarea.remove();
-                contentSpan.show();
-                msgDiv.find(".edit_action, .delete_action").show();
-                msgDiv.find(".save_button, .cancel_button").hide();
-            });
-        });
-
-        jQuery(".delete_action").off().on("click", function() {
-            const msgDiv = jQuery(this).closest(".message");
-            const msgId = msgDiv.attr("message_id");
-            if (confirm("Are you sure you want to delete this message?")) {
-                socket.emit("delete message", { msg_id: msgId, roomID: chat_id, user_id });
-            }
-        });
-    }
-
-    socket.on("chat message", (message) => appendMessages(message));
-    socket.on("delete message", (resp) => {
-        jQuery(`div[message_id='${resp.msg_id}']`).remove();
-    });
-    socket.on("edit message", (updatedMessages) => {
-        updatedMessages.forEach(msg => {
-            const existing = jQuery(`div[message_id='${msg.message_id}']`);
-            if (existing.length) existing.remove();
-        });
-        appendMessages(updatedMessages);
-    });
-    socket.on("disconnect", () => socket.connect());
-
-    function updateMessage(msg_id, newMessage) {
-        socket.emit("edit message", {
-            message_id: msg_id,
-            roomID: chat_id,
-            user_id,
-            message: newMessage
-        });
-    }
-});
 </script>
