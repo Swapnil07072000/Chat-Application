@@ -16,14 +16,20 @@ class FileUpload extends Model{
       let file_urls = [];
       let error_msg = "";
       try {
+		if(typeof files != "object"){
+			files = files.split(",");
+		}
+		//console.log(files);
         if(files && files.length > 0){
+		//	console.log(files);
           for(const key in files){
-            const file = files[key];
-            const fileName = path.parse(file.originalname).name;
+            const file = (files[key]);
+            const file_basename = file.originalname;//path.basename(file.href);
+			const fileName = path.parse(file_basename).name;
             const uniqueFileName = path.parse(file.filename).name;
-            const filePath = file.path;
-            const file_type = path.parse(file.filename).ext;
-            const fileID = uuidv4();
+            const file_type = path.parse(file_basename).ext;
+            const filePath = "/uploads/"+uniqueFileName+file_type;
+			const fileID = uuidv4();
             const data = {
                 file_id: fileID,
                 unique_file_name: uniqueFileName,
@@ -34,6 +40,7 @@ class FileUpload extends Model{
                 msg_id: msg_id,
                 user_id: user_id,
             };
+			//console.log(data);
             const fileSave = await FileUpload.create(data);
             if(fileSave.id <= 0){
               throw new Error("Error in saving files");
@@ -41,7 +48,7 @@ class FileUpload extends Model{
             let file_info = [];
             file_info.push(data);
             const fileData = await helper.performFileChanges(file_info);
-  
+ 			//console.log(fileData); 
             let temp = {
               "file_id": fileSave.file_id, 
               "file_name": fileName,
@@ -54,6 +61,7 @@ class FileUpload extends Model{
       } catch (error) {
         response = false;
         error_msg = error.message;
+		  console.log(error.message);
       }
       let resp = {
         "status": response,
@@ -73,6 +81,7 @@ class FileUpload extends Model{
       try {
         let query = "";
         let replacements = {};
+		  commited = 0;
         replacements.commited = commited.toString();
         query = `
             SELECT f.* FROM file_upload AS f
@@ -103,7 +112,8 @@ class FileUpload extends Model{
         query += `AND
             DATE(f.created_at) BETWEEN DATE(CURDATE()-INTERVAL+2 DAY) AND DATE(CURDATE())
             `;
-        // console.log(query);
+		 //console.log(commited);
+        //console.log(query);
         result = await sequelize.query(
           query,
           {
@@ -118,18 +128,22 @@ class FileUpload extends Model{
       const fileData = await helper.performFileChanges(result);
       let fileMap = {};
       let chatMap = {};
+	//console.log(fileData);
       for(let key in fileData){
+		  //console.log(key);
         if(fileData.hasOwnProperty(key)){
           let file = fileData[key];
           let temp_url = file.secure_url;
           fileMap[temp_url] = file;
-          if(commited == 1){
+          if(true){
             if(chatMap[file.chat_id] == undefined){
               chatMap[file.chat_id] = {};
             }
             if(chatMap[file.chat_id][file.msg_id] == undefined){
               chatMap[file.chat_id][file.msg_id] = {};
             }
+			//  console.log(file);
+		//	console.log(key, "A");
             chatMap[file.chat_id][file.msg_id][temp_url] = file; 
           }
         }
@@ -138,9 +152,10 @@ class FileUpload extends Model{
       response.error_msg = error_msg;
       response.filedata = fileData;
       response.fileMap = fileMap;
-      if(commited == 1){
+      if(true){
         response.chatMap = chatMap;
       }
+		//console.log(response.filedata);
       return response;
       // console.log(error_msg, result);
   }

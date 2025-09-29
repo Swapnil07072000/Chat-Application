@@ -125,13 +125,13 @@ class ChatGroups extends Model {
         GROUP_CONCAT(u.username SEPARATOR ',') AS private_chat_name 		
         FROM chat_groups AS g
         INNER JOIN chats_group_users AS cu
-        ON(cu.chat_id = g.chat_id AND cu.user_id != ${user_id})
+        ON(cu.chat_id = g.chat_id AND cu.user_id = ${user_id})
         INNER JOIN users AS u
         ON(u.id = cu.user_id)
         AND g.published = '1'
         AND u.active = '1' 
         AND g.is_group = '0'
-        #AND cu.user_id != ${user_id}
+		#AND cu.user_id != ${user_id}
         AND cu.active = '1'
         GROUP BY g.id
       ` ;

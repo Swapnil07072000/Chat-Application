@@ -76,21 +76,30 @@ router.post("/register",
     ],
     users.signUp);
 
-// router.get("/user/chats", [veriftJWTToken.veriftJWTToken, authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
-router.get("/user/chats", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllGroups);
+router.use("/user", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)]);
+	router.get("/user/chats", chats.getAllGroups);
+	router.get("/user/user-profile/:user_id", users.getUserProfileInfo);
+	router.get("/user/chats/:chat_id", chats.getChatById);
+	router.get("/user/chatjoin/:chat_id", chats.joinChatGroup);
+	router.get("/user/friend-requests", chats.getAllFriendRequestsForUser);
+	router.get("/user/logout", users.signOut);
 
-router.post("/chat/create", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)] , chats.createGroup);
-router.get("/user/user-profile/:user_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.getUserProfileInfo);
-router.get("/user/chats/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getChatById);
-router.get("/user/chatjoin/:chat_id", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.joinChatGroup);
-router.post("/user/friendrequest", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.sendFriendRequest);
-router.post("/user/friendrequestaction/:actionType", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.actionOnRequest);
-
-router.get("/user/friend-requests", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], chats.getAllFriendRequestsForUser);
+	router.post("/user/friendrequest", users.sendFriendRequest);
+	router.post("/user/friendrequestaction/:actionType", chats.actionOnRequest);
 
 
-router.get("/user/logout", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)], users.signOut);
+router.use("/chat", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)]);
+	router.get("/chat/:chat_id/:msg_id/view/:file_id", chats.viewFile);
 
-router.post("/upload",[veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware), upload.single('file')], fileUpload.upload);
+	router.post("/chat/create", chats.createGroup);
+
+
+
+router.use("/upload",[veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)]);/*, upload.single('file')]);*/
+	router.post("/upload", fileUpload.upload);
+	router.post("/upload/chunk", fileUpload.uploadChunk);
+	router.post("/upload/registerfiles", fileUpload.registerFiles);
+
+
 
 module.exports = router;

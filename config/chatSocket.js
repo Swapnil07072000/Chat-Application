@@ -9,7 +9,7 @@ const CryptoService = require("../config/encryptdecrypt");
 const jwtTokenVerify = require("../middlewares/verifyToken");
 
 const fileUpload = require("../controllers/FileUpload");
-
+const fileUploadModel = require("../models/FileUpload");
 const { v4: uuidv4 } = require("uuid");
 const fileModel = require("../models/FileUpload");
 require("../config/messageWorkerService");
@@ -97,7 +97,9 @@ class ChatSocket {
         }
         const fileMap = fileResponse.fileMap;
         const fileIds = [];
-        const message = msg.message;
+		//console.log(msg);
+		const data = msg.data;
+        const message = data.message;
         for(let key in fileMap){
           if(fileMap.hasOwnProperty(key)){
             if(message.includes(key)){
@@ -106,7 +108,7 @@ class ChatSocket {
             }
           }
         }
-        console.log('Message '+msg.message+' to room ' + msg.roomID);
+        //console.log('Message '+data.message+' to room ' + msg.roomID);
         // const msg_result = {};
         if(msg.roomID){
           try{
@@ -114,7 +116,7 @@ class ChatSocket {
             // this.redisClient.publish("chat_messages", JSON.stringify(msg));
             const message_id = uuidv4();
             const cryptoInstance = new CryptoService();
-            const encryptedText = cryptoInstance.encrypt(msg.message);
+            const encryptedText = cryptoInstance.encrypt(data.message);
             const message_data = await userschatsmessages.create({
                 message_id: message_id,
                 chat_id: msg.roomID,
@@ -137,14 +139,19 @@ class ChatSocket {
                 );
 
               }
-              // const file = new fileUpload();
-              // await fileUpload.upload(msg.files, msg.roomID, message_data.message_id);  
+				//if(data.files){
+				//console.log(data.files);
+              	//const file = new fileUploadModel();
+              	//await file.upload(data.files, msg.roomID, message_data.message_id);  
+		//	}
+			  //console.log("A");
+
               const processed_chat_record = await userschatsmessages.getChatMessagesFromChatID(message_data.chat_id, message_data.user_id, message_data.message_id);
-              // console.log(processed_chat_record);
+             // console.log(processed_chat_record);
               
               this.io.to(msg.roomID).emit('chat message', processed_chat_record);
-            }
-            
+			}
+			            
             // getChatGroupData(socket, msg.roomID, msg.user_id);
           }catch(error){
             console.log("Error2: "+error);
@@ -192,7 +199,8 @@ class ChatSocket {
           // const processed_chat_records = await userschatsmessages.getChatMessagesFromChatID(msg.roomID, msg.user_id);
           // socket.emit("messagesOfChatGroup", processed_chat_records);
           let resp = {msg_id: msg.msg_id};
-          socket.emit("delete message", resp);
+          //socket.emit("delete message", resp);
+		  this.io.to(msg.roomID).emit("delete message", resp);  
         }catch(error){
           console.log("Error in deleting messages: "+error);
         }

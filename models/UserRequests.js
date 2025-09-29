@@ -55,46 +55,48 @@ class UserRequests extends Model {
 
 
     /**
-     * Check is already a friend request
-     * exists or not
+     *	This function get the friend request list
+	 *	@param object from_user_list
+	 *	@param object to_user_list
+	 *	@return object
      */
-    isFriendRequestSend = async(from_user, to_user) =>{
-        let result = "";
-        let is_error = false, is_present = false;
-        let is_my_request = true;
-        let error_msg = "";
+    getFriendRequestList = async(from_user_list, to_user_list) =>{
+		let response = {};
         try{
-            result = await sequelize.query(
+			if(typeof from_user_list != "object"){
+				from_user_list  = ""+from_user_list;
+				from_user_list = from_user_list.split(",");
+			}	
+			if(typeof to_user_list != "object"){
+				to_user_list  = ""+to_user_list;
+				to_user_list = to_user_list.split(",");
+			}
+			let from_users = from_user_list.join(",");
+			let to_users = to_user_list.join(",");
+            let result = await sequelize.query(
                 `
                 SELECT ur.* FROM user_requests AS ur
                 WHERE ur.published = '1'
                 AND ur.status = '0'
-                AND (ur.request_last_action_by = :from_user
-                OR ur.request_last_action_by = :to_user)
-                AND (ur.request_to = :from_user
-                OR ur.request_to = :to_user)
+                AND (ur.request_last_action_by IN (:from_users)
+                OR ur.request_last_action_by IN (:to_users))
+                AND (ur.request_to IN (:from_users)
+                OR ur.request_to IN (:to_users))
                 `,
                 {
-                replacements: {from_user, to_user},
+                replacements: {from_users, to_users},
                 type: Sequelize.QueryTypes.SELECT,
                 }
             );  
-            if (typeof result != undefined && 
-                result != null && 
-                result.length != null && 
-                result.length > 0) {
-                is_present = true;
-            }
-            if(result[0]){
-                if(result[0].request_last_action_by != from_user){
-                    is_my_request = false;
-                }
-            }
+			response.status = true;
+			response.http_code = 200;
+			response.result = result;
         }catch(error){
-            is_error = true;
-            error_msg = error.message;
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
         }
-        return [is_error, is_present, is_my_request, error_msg];
+        return response;
     }
     
 }

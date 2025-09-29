@@ -4,10 +4,15 @@ const chatsgroupusers = require('../models/ChatsGroupUsers');
 const userrequests = require("../models/UserRequests");
 const userscircle = require("../models/UsersCircle");
 const userschatsmessages = require('../models/UsersChatsMessages');
+const fileUpload = require("../models/FileUpload");
+const users = require("../models/Users");
 // const bcrypt = require("bcryptjs");
 // const session = require('express-session');
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
+
+const fs = require("fs");
+const path = require("path");
 
 class Chats{
     constructor(){
@@ -107,13 +112,14 @@ class Chats{
                 return res.redirect("/user/chats");
             }
             // console.log(is_valid);
-            // console.log(chat_records);
+           	// console.log(chat_records);
             // console.log(chat_records.chat_name);
             // console.log(chat_users_list);
             const chat_data = {
                 "chat_group_name":chat_records[0].chat_name, 
                 "group_description": chat_records[0].chat_description,
                 "user": user,
+				"chat_id": chat_id,
                 "is_present_in_group": is_present,
                 "chat_group_users_list": chat_users_list,
                 "is_group": is_group,
@@ -400,6 +406,71 @@ class Chats{
             return [true, response];
         }
     }
+
+	#getViewFilePath = async(chat_id, msg_id, file_id, user_id) => {
+		let response = {};
+		try{	
+			let logged_in_user = await users.findOne({where: {id: user_id}});
+			if(!logged_in_user || logged_in_user.id <= 0){
+				throw Error("No session found");
+			}
+			if(!chat_id || !msg_id || !file_id){
+				throw Error("Missing data");
+			}
+			//console.log(logged_in_user.id);
+			const group_users = await chatsgroupusers.findOne({where: {chat_id: chat_id, user_id: logged_in_user.id, active: '1'}});
+			if(!group_users || group_users.id <= 0){
+				throw Error("Logged in user not allowed to view the file.", 422);
+			}
+			const file_record = await fileUpload.findOne({where: {chat_id: chat_id, msg_id: msg_id, file_id: file_id, published: '1'}});
+			//console.log(group_users);
+			if(!file_record || file_record.id <= 0){
+				throw Error("File record is not present invalid URL.");
+			}
+
+		//console.log(file_record);
+			let filePath = path.resolve(__dirname, file_record.file_url);
+
+			response.status = true;
+			response.http_code = 200;
+			response.file_path = filePath;
+		}catch(error){
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
+			response.file_path = "";
+		}
+		return response;
+	}
+
+	/**
+	 *	This function handles route file view rules
+	 *	@param object req
+	 *	@param object res
+	 *
+	 *
+	*/
+	viewFile = async(req, res) => {
+		let response = {};
+		let filePath = "";
+		try{
+			const { chat_id, msg_id, file_id } = req.params;
+			let logged_in_user = req.session.user;
+			//console.log(chat_id, msg_id, file_id, logged_in_user.id);
+			//console.log("A");
+		//	console.log(filePath);
+			const view_resp = await this.#getViewFilePath(chat_id, msg_id, file_id, logged_in_user.id);
+		//	console.log(view_resp);
+			response.file_path = view_resp.file_path;
+			filePath = view_resp.file_path;
+		}catch(error){
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
+		}
+		return res.render("layouts/index",{partial:"../viewFile", data: filePath} );
+	}
+
 }
 
 module.exports = new Chats;

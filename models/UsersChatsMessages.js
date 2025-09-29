@@ -55,6 +55,8 @@ class UsersChatsMessages extends Model {
           type: Sequelize.QueryTypes.SELECT,
         }
       );
+		//console.log(query);
+		//console.log(chat_records);
       // console.log(query, chat_records);
     }catch(error){
       console.log(error.message);
@@ -74,17 +76,19 @@ class UsersChatsMessages extends Model {
       // day: "numeric", 
       hour: "2-digit", minute: "2-digit"  
     };
-    
-    const chatMap = fileResponse["chatMap"][chat_id]; 
-    for(let key in chat_records){
+	//console.log(chat_id);
+	//console.log(fileResponse);    
+    const chatMap = fileResponse["chatMap"] && Object.keys(fileResponse["chatMap"]).length > 0?fileResponse["chatMap"]:{}; 
+   	//console.log(chatMap);
+	for(let key in chat_records){
       if(chat_records.hasOwnProperty(key)){
         let ind_record = {};
         let per_record = chat_records[key];  
         ind_record.chat_of_user = per_record.username;
         ind_record.chat_id = per_record.chat_id;
-        if(per_record.user_id == user_id){
+        //if(per_record.user_id == user_id){
           ind_record.message_id = per_record.message_id;
-        }else ind_record.message_id = null;
+        //}else ind_record.message_id = null;
         let decryptedText = cryptoInstance.decrypt(per_record.message);
         ind_record.message = decryptedText;
         ind_record.user_id = per_record.user_id;
@@ -119,17 +123,31 @@ class UsersChatsMessages extends Model {
           ind_record.timestamps = ((new Date(per_record.created_at)).toLocaleTimeString(undefined, display_options));
           ind_record.is_edited = false;
         }
+		  /*
         if(chatMap != undefined && chatMap[per_record.message_id] !== undefined){
           let k = chatMap[per_record.message_id];
           ind_record.chat_files = k;
         }
-        
+		*/
+		  //console.log(chatMap.length);
+       	if(chatMap && Object.keys(chatMap).length > 0 && chatMap[ind_record.chat_id][ind_record.message_id]){
+			let each_file_record = chatMap[ind_record.chat_id][ind_record.message_id];
+			if(each_file_record){
+				let file_msg_list = [];
+			    for(const [key,each_file_record_value] of Object.entries(each_file_record)){
+					//console.log(value);
+					file_msg_list.push( "<a href='"+each_file_record_value.image_url+"' target='_blank' >"+each_file_record_value.file_name+"</a>");
+				}
+				ind_record.is_href = true;
+				ind_record.message = file_msg_list.join("</br>");//"<a href='"+each_file_record_value.image_url+"' target='_blank' >"+each_file_record_value.file_name+"</a>";
+			}
+		} 
         processed_chat_records.push(ind_record);
       }
     }
 
-    
-    // console.log(processed_chat_records.reverse());
+   //console.log(processed_chat_records);
+  // console.log(processed_chat_records.reverse());
     return processed_chat_records.reverse();
   }
 }

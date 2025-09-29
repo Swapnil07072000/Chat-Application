@@ -16,7 +16,8 @@ class JwtToken{
         return token;
     }
 
-    veriftJWTToken(token){
+    veriftJWTToken = async(token) => {
+
         if(!token){
             return;
         }

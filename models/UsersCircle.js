@@ -4,39 +4,47 @@ const sequelize = require('../config/db');
 class UsersCircle extends Model {
     
     /**
-     * Check for the user whom one is sending
-     * the request, is already friend
+     * 	This function check users are already friends or not
+	 * 	@param object from_user_list
+	 * 	@param object to_user_list
+	 * 	@return object
      */
-    isUserAlreadyFriend = async(from_user, to_user) => {
-        let is_error = false, is_present = false;
-        let error_msg = "";
+    isUserAlreadyFriend = async(from_user_list, to_user_list) => {
+		let response = {};
         try{
-            let result = "";
-            result = await sequelize.query(
+            if(typeof from_user_list != "object"){
+				from_user_list = ""+from_user_list;
+				from_user_list = from_user_list.split(",");
+			}
+            if(typeof to_user_list != "object"){
+				to_user_list = ""+to_user_list;
+				to_user_list = to_user_list.split(",");
+			}
+			let from_user = from_user_list.join(",");
+			let to_user = to_user_list.join(",");
+            let result = await sequelize.query(
                 `
                 SELECT uc.id FROM users_circle AS uc
                 WHERE uc.active = '1'
-                AND (uc.friend_user_id = :from_user
-                OR uc.friend_user_id = :to_user)
-                AND (uc.user_id = :from_user
-                OR uc.user_id = :to_user)
+                AND (uc.friend_user_id IN (:from_user)
+                OR uc.friend_user_id IN (:to_user))
+                AND (uc.user_id IN (:from_user)
+                OR uc.user_id IN (:to_user))
                 `,
                 {
                 replacements: {from_user, to_user},
                 type: Sequelize.QueryTypes.SELECT,
                 }
             );  
-            if (typeof result != undefined && 
-                result != null && 
-                result.length != null && 
-                result.length > 0) {
-                is_present = true;
-            }
+            response.status = true;
+			response.http_code = 200;
+			response.result = result;
         }catch(error){
-            is_error = true;
-            error_msg = error.message;
+            response.status = false;
+			response.http_code = error.code;
+            response.message = error.message;
         }
-        return [is_error, is_present, error_msg];
+        return response;
     }
 }
 

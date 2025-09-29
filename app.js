@@ -10,10 +10,11 @@ const path = require("path");
 const flash = require('express-flash')
 
 const router = require("./routes/routes");
+const adminrouter = require("./routes/adminroutes");
 const sequelize = require('./config/db');
 const ChatSocket = require('./config/chatSocket');
 const RedisClient = require('./config/redis');
-
+require("./cron/cron")();
 
 const app = express();
 //Socket-io Settings
@@ -54,11 +55,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname,'uploads')));
 // app.use('/scripts', express.static(path.join(__dirname, 'node_modules/quill/')));
 // app.use(express.static('public'));
+//app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(flash());
 
 app.use("/", router);
+app.use("/admin", adminrouter);
 
 app.use((req, res, next) => {
     res.status(404).render("layouts/404");

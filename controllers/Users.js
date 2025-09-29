@@ -18,9 +18,128 @@ class Users{
         
     }
 
+
+	/*
+	 *	This function handles whether the user email is already assigned to another user or not
+	 * 	@param object user
+	 * 	@return boolean 
+	*/
+	#emailExists = async(user) => {
+		let existing_user = await users.findOne({where: {"email": user.email}});
+		return (existing_user?true:false);
+	}
+
+
+	/*
+	 *	This function handles whether the user username is already assigned to another user or not
+	 * 	@param object user
+	 * 	@return boolean 
+	*/
+	#usernameExists = async(user) => {
+		let existing_user = await users.findOne({where: {"username": user.username}});
+		return (existing_user?true:false);
+	}
+
+	/**
+	 *	This function handles the password salting rounds
+	 *	@param string password	
+	 *	@return string
+	 *
+	*/
+	#hashPassword = async(user) => {
+		const saltRounds = 10; 
+		const password_hashed = await new Promise((resolve, reject) => {
+			bcrypt.genSalt(saltRounds, function(err, salt) {
+				if(err) throw new Error(err);
+				bcrypt.hash(user.password, salt, function(err, hash) {
+					if(err) throw new Error(err);
+					resolve(hash);
+				});
+			});
+		});
+		return password_hashed;
+	}
+
+	/**
+	 *	This function create/save a new user
+	 *	@param object user
+	 *	@return object 
+	*/
+	#saveUser = async(user) => {
+		let newUser = null;
+		try{
+			const new_user = await users.create(user)
+				.then(function(newUser){
+					return newUser;
+				})
+				.catch(function(error){
+					throw new Error(error);
+				});
+			newUser = new_user;
+		}catch(error){
+			newUser = false;
+		}
+		return newUser;
+	}
+
+	/**
+	 *	This function compare the user password is valid or not
+	 *	@param object user
+	 *	@param string password
+	 *	@return bool
+	*/
+	#comparePassword = async(user, password) => {
+		const isMatch = await bcrypt.compare(password, user.password_hashed);
+		return isMatch;
+	}
+
+	/**
+	 *	This function get the user JWT token
+	 *	@param object user
+	 *	@return string
+	*/
+	#createJWTtoken = async(user) => {	
+		const jwtInstance = new JwtToken();
+		const token = await jwtInstance.createJWTToken(user);
+		return token;
+	}
+
+	/**
+	 *	This function creates a new user
+	 * 	@param object user
+	 * 	@param object
+	*/
+	createUser = async(user) => {
+		let response = {};
+		try{	
+			const emailExist = await this.#emailExists(user);
+			if(emailExist == true){
+				throw new Error("Please enter another email address already been used.", 409);
+			}
+			const usernameExist = await this.#usernameExists(user);
+			if(usernameExist == true){
+				throw new Error("Please enter another username already been used.", 409);
+			}
+			const password_hashed = await this.#hashPassword(user);
+			user.password_hashed = password_hashed;
+			const newUser = await this.#saveUser(user);
+			if(newUser === false){
+				throw new Error("Something went wrong, please try again later", 422);
+			}
+			response.status = true;
+			response.http_code = 200;
+			response.message = "User created successfully.";
+		}catch(error){
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
+		}	
+		return response;
+	}
+
     /**
-     * Check user exists or not 
-     * with user_id
+     * 	Check user exists or not with userID 
+     * 	@param int user_id
      */
     checkUserExistsOrNot = async(user_id) => {
         let status = true;
@@ -40,7 +159,9 @@ class Users{
     }
 
     /**
-     * Register or Sign Up
+     * 	This function handles register/sign-up from user request
+	 * 	@param object req
+	 * 	@param object res
      */
     signUp = async(req, res) => {
         let redirect_url = "";
@@ -51,27 +172,15 @@ class Users{
             if(valid != ""){
                 throw new Error(valid);
             }
-            const existingUser = await users.findOne({ where: { email } });
-            if (existingUser) {
-                throw new Error("User with the same email already exists. Please eneter another email.");
-            }
-            const saltRounds = 10; 
-            const password_hashed = await new Promise((resolve, reject) => {
-                bcrypt.genSalt(saltRounds, function(err, salt) {
-                    if(err) throw new Error(err);
-                    bcrypt.hash(password, salt, function(err, hash) {
-                        if(err) throw new Error(err);
-                        resolve(hash);
-                    });
-                });
-            });
-            await users.create({name, username, password_hashed, email })
-                .then(function(newUser){
-                    //
-                })
-                .catch(function(error){
-                    throw new Error(error);
-                });
+			let user = {};
+			user.name = name;
+			user.email = email;
+			user.username = username;
+			user.password = password;
+			const create_response = await this.createUser(user);
+			if(create_response.status == false){
+				throw new Error(create_response.message, create_response.http_code);
+			}
             redirect_url = "/login";
         } catch (error) {
             redirect_url = "/register";
@@ -84,7 +193,9 @@ class Users{
     }
 
     /**
-     * Login or Sign In
+     * 	This function handles login/sign-in from user request
+	 * 	@param object req
+	 * 	@param object res
      */
     signIn = async(req, res) => {
         let redirect_url = "";
@@ -97,14 +208,13 @@ class Users{
             }
             const user = await users.findOne({where : {username}});
             if(!user){
-                throw new Error("Username or password is invalid.");
+                throw new Error("Username or password is invalid.", 422);
             }
-            const isMatch = await bcrypt.compare(password, user.password_hashed);
-            if(!isMatch){
-                throw new Error("Username or password is invalid.");
-            }
-            const jwtInstance = new JwtToken();
-            const token = await jwtInstance.createJWTToken(user);
+			const isMatch = await this.#comparePassword(user, password);
+			if(!isMatch){			
+                throw new Error("Username or password is invalid.", 422);
+			}
+			const token = await this.#createJWTtoken(user);
             await res.cookie("jwtToken", token, {
                 httpOnly: true
             });
@@ -174,115 +284,147 @@ class Users{
      */
     getUserProfileInfo = async(req, res) => {
         const { user_id } = req.params;
-        let is_error = false;
-        try{
-            const user = await users.findOne({where: {"id": user_id}});
+        let response = {};
+        try{ 
+			let from_user = req.session.user.id;
+			let from_user_obj = req.session.user;
+			const user = await users.findOne({where: {"id": user_id}});
+			if((!user || user.id <= 0) || (!from_user || from_user <= 0)){
+				throw new Error("Something went wrong", 404);
+			} 
             const userReq = new userrequests();
             const userCircle = new usersCircle();
-            const [is_error_in_request, is_prev_friend_request_present, is_my_request, error_msg_req] = await userReq.isFriendRequestSend(req.session.user.id, user.id);
-            if(is_error_in_request){
-                throw new Error(error_msg_req);
+			let to_user = user.id;
+			let is_already_friend = false;
+			let is_prev_friend_request_present = false;
+			let is_my_request = false;
+            const user_req_response = await userReq.getFriendRequestList(from_user, to_user);
+			if(user_req_response.status == false){
+                throw new Error(user_req_response.message, user_req_response.http_code);
             }
-            const [is_error, is_already_friend, error_msg] = await userCircle.isUserAlreadyFriend(req.session.user.id, user.id);
-            if(is_error){
-                throw new Error(error_msg);
+			const user_req_result = user_req_response.result;
+			if(user_req_result && user_req_result.length > 0){
+				is_prev_friend_request_present = true;
+			}
+            const user_circle_response = await userCircle.isUserAlreadyFriend(from_user, to_user);
+            if(user_circle_response.status == false){
+                throw new Error(user_circle_response.message, user_cirlce_response.http_code);
             }
-            const curr_user = req.session.user;
+			const user_circle_result = user_circle_response.result;
+			if(user_circle_result && user_circle_result.length > 0){
+				is_already_present = true;
+			}	
             let result = "";
-            if(is_already_friend && (curr_user.id != user_id)){
+            if(is_already_friend && (from_user != to_user)){
                 result = await usersCircle.findOne(
                     {
                         where: {
                             friend_user_id:{
-                                [Op.or]: [curr_user.id, user_id]
+                                [Op.or]: [from_user, to_user]
                             },
                             user_id:{
-                                [Op.or]: [curr_user.id, user_id]
+                                [Op.or]: [from_user, to_user]
                             } 
                         }
                     }
                 );
             }
-            var sendData = {
-                "frienduser":user, 
-                "curruser": req.session.user, 
-                "is_prev_request_present": is_prev_friend_request_present, 
-                "is_already_friend": is_already_friend, 
-                "is_my_request": is_my_request,
-                "user_circle_record": result,
-            };
-            
+			response.status = true;
+			response.http_code = 200;
+			response.curruser = from_user_obj;
+			response.frienduser = user;
+			response.is_prev_request_present = is_prev_friend_request_present;
+			response.is_already_friend = is_already_friend;
+			response.is_my_request = is_my_request;
+			response.user_circle_record = result; 
         }catch(error){
-            is_error = true;
-            req.flash("error", error.message);
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
         }
-        return (is_error?res.redirect("/user/chats"):res.render("layouts/index",{partial:"../user-profile", data: sendData}));
+		if(response.status == false){
+            req.flash("error", response.message);
+			res.redirect("/user/chats");
+		}else{
+			res.render("layouts/index",{partial:"../user-profile", data: response})
+		}
+		
+        return;
     }
 
     /**
-     * This function handles the task of sending
-     * friend request to users other then self
+     *	This function handles the task of sending friend request
+	 *	@param object req
+	 *	@param object res
+	 *	@param object
      */
     sendFriendRequest = async(req, res) => {
         const{ curr_user, friend_user } = req.body;
         let is_ajax = await helper.isAjax(req, res);
-        let response = null;
-        let is_error = false;
+		let response = {};
         try{
-            if(curr_user == friend_user){
-                throw new Error("Cannot send friend request to self.");
+			let from_user = req.session.user.id;
+			let to_user = friend_user;
+            if(from_user == to_user){
+                throw new Error("Cannot send friend request to self.", 422);
             }
             const userReq = new userrequests();
-            const [is_error_in_request, is_prev_friend_request_present, is_my_request, error_msg] = await userReq.isFriendRequestSend(curr_user, friend_user);
-            if(is_error_in_request == true){
-                throw new Error(error_msg);
+            const userCircle = new usersCircle();
+			let is_prev_friend_request_present = false;
+			let is_already_friend = false;
+			const user_req_response  = await userReq.getFriendRequestList(from_user, to_user);
+            if(user_req_response.status == false){
+                throw new Error(user_req_response.message, user_req_response.http_code);
             }
             if(is_prev_friend_request_present == true){
-                throw new Error("Already friend request send.");
+                throw new Error("Already friend request send.", 422);
             }
-            const userCircle = new usersCircle();
-            const [is_error, is_already_friend, error_friend] = await userCircle.isUserAlreadyFriend(curr_user, friend_user);
-            if(is_error == true){
-                throw new Error(error_friend);
+            const user_circle_response = await userCircle.isUserAlreadyFriend(from_user, to_user);
+            if(user_circle_response.status == false){
+                throw new Error(user_cirlce_response.message, user_circle_response.http_code);
             }
             if(is_already_friend == true){
-                throw new Error("Already friend.");
+                throw new Error("Already friend.", 422);
             }
             
             const request_id = uuidv4();
-            const data = {"request_user_from": curr_user, "request_user_to": friend_user};
+			let data = {};
+			data.request_user_from = from_user;
+			data.request_user_to = to_user;
             const request_data = JSON.stringify(data);
-            
-            await userrequests.create(
-                {
-                    request_id:request_id, 
-                    request_data: request_data, 
-                    request_to:friend_user, 
-                    request_last_action_by: curr_user,
-                    created_by: curr_user,
-                })
+            let save_data = {};
+			save_data.request_id = request_id;
+			save_data.request_data = request_data;
+			save_data.request_to = to_user;
+			save_data.request_last_action_by = from_user;
+			save_data.created_by = from_user;
+            const user_request = await userrequests.create(save_data)
                 .then((request)=>{
-                    //
+                   	return request;
                 })
                 .catch((error)=>{
-                    throw new Error(error.message);
+                    throw new Error(error.message, error.code);
                 });
-                let sucess_msg = "Sucessfully send the friend request.";
-                if(is_ajax){
-                    response = {"httpCode": 200, "httpMessage": sucess_msg};
-                }else{
-                    req.flash("success", sucess_msg);
-                }
+			response.status = true;
+			response.http_code = 200;
+			response.message = "Friend Request is send!";
         }catch(error){
-            is_error = true;
-            let error_msg = error.message;
-            if(is_ajax){
-                response = {"httpCode": 500, "httpMessage": error_msg};
-            }else{
-                req.flash("error", error_msg);
-            }
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
         }
-        return (is_ajax?res.json(response):res.redirect("/user/user-profile/"+friend_user)) 
+		let flash_status = "success";
+		if(response.status == false){
+			flash_status = "error";
+		}
+		if(is_ajax){
+			response.httpMessage = response.message;
+			res.json(response);
+		}else{
+			req.flash(flash_status, response.message);
+			res.redirect("/user/user-profile/"+to_user);
+		}
+        return;
     }
 
     

@@ -1,3 +1,4 @@
+require("dotenv").config();
 class Helper{
     constructor(){
         //
@@ -33,16 +34,20 @@ class Helper{
      * 
      */
     static async performFileChanges(fileInfo){
+		const hostname = process.env.HOST_NAME;
+		const port = process.env.PORT;
         for(let key in fileInfo){
             if(fileInfo.hasOwnProperty(key)){
                 let file = fileInfo[key];
-                const name = file.file_url.replace(/\\/g, '/')
-                const tmp_url = new URL(`http://localhost:9000/${name}`);
-                const secure_url = "["+file.file_name+"]["+tmp_url.href+"]";
+                const name = file.file_name;
+				const url = "http://"+hostname+":"+port+"/chat/"+file.chat_id+"/"+file.msg_id+"/view/"+file.file_id;
+                const tmp_url = new URL(url);
+                const secure_url = tmp_url.href
                 fileInfo[key].secure_url = secure_url;
                 fileInfo[key].image_url = tmp_url.href;
             }
         }
+		//console.log(fileInfo);
         return fileInfo;
     }
 }

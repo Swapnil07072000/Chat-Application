@@ -1,7 +1,7 @@
 {
-  "name": "chatapp",
+  "name": "Chat With Me",
   "version": "1.0.0",
-  "description": "This is chat app with socket.io",
+  "description": "Chat With me is an application one can use to connect with the people on the application.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,18 +14,20 @@
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
-    "express": "^4.21.0",
     "mysql2": "^3.11.3",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "connect-redis": "^7.1.1",
     "crypto": "^1.0.1",
+    "express": "^5.1.0",
     "express-flash": "^0.0.2",
+    "express-router-group": "^0.1.4",
     "express-session": "^1.18.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "multer-utf8": "^1.4.7",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.9",
     "quill": "^2.0.3",
     "redis": "^4.7.0",
