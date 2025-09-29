@@ -81,7 +81,7 @@ class FileUpload{
 	 *
 	 */
 	uploadChunk = async(req, res) => {
-		const CHUNKS_DIR = "./chunks";
+		const CHUNKS_DIR = "./uploads"; //"./chunks";
 		const file_name = req.headers["x-file-name"];
 		const total_chunks = parseInt(req.headers["x-total-chunks"]);
 		const current_chunk = parseInt(req.headers["x-current-chunk"]);	
@@ -98,16 +98,17 @@ class FileUpload{
 		//const {first, file_name} = req.body;
 		//console.log(req.body);
 		const chunk_file_name = path.parse(file_name).name;
-		const chunkFilename = `${chunk_file_name}.${current_chunk}`;
+		const chunkFilename = file_name; //`${chunk_file_name}.${current_chunk}`;
 		//console.log(chunkFilename);
 		const chunkPath = `${CHUNKS_DIR}/${chunkFilename}`;
 		//console.log(file.path);
-  		const writeStream = fs.createWriteStream(chunkPath);
-		req.pipe(writeStream);
+  		const writeStream = await fs.createWriteStream(chunkPath, { flags: 'a' });
+		await req.pipe(writeStream);
 		writeStream.on('finish', async() => {
     		//res.send('Chunk uploaded');
   		//console.log("chunk uploaded", current_chunk+1, total_chunks);
-	  	if (current_chunk+1 === total_chunks) {	
+	  	if (current_chunk+1 === total_chunks) {
+		  /*	
 		  await this.assembleChunks(file_name, total_chunks, chunk_file_name, original_file_name)
 		  .then(async(file_resp) => {
 					
@@ -116,12 +117,19 @@ class FileUpload{
 		  })
 		  .catch((err) => {
 			console.error('Error assembling chunks:', err);
-			res.send('Error assembling chunks');
+			res.send({msg: 'Error assembling chunks'});
 		  });
-		 
-		
+		  */
+	//	let file_resp = {};
+	let file_resp = {};
+	file_resp.path = chunkPath;
+	file_resp.originalname = original_file_name;	
+    file_resp.filename = file_name;
+			 
+			  res.send({file: file_resp, msg:'File uploaded successfully'});
+			
 	  	} else {
-			res.send('Chunk uploaded successfully');
+			res.send({msg: 'Chunk uploaded successfully'});
 	  	}
 		});	
 		//console.log(chunkPath);

@@ -48,15 +48,87 @@
 				<input type="text" id="message" class="form-control me-2" placeholder="Type your message here..." required>
                 <button type="submit" class="btn btn-primary">Send</button>
             </form>
-			<form id="file_upload" action="/upload" enctype="multipart/form-data"  method="POST" >
-					<input type="file" name="file[]" id="file" class="form-control" multiple="multiple" required />
-                <input type="hidden" name="chat_id" value="<%= data.chat_id %>"/>
-                <input type="hidden" name="user_id" value="<%= data.user.id %>"/>
-				<button id="submit_file" type="button" class="btn btn-primary">Send File</button>
-        	</form>
+<form id="file_upload" action="/upload" enctype="multipart/form-data" method="POST" class="file-upload-form">
+    <!-- File input button -->
+    <div class="mb-3">
+        <label for="file" class="form-label"><i class="fas fa-paperclip"></i> Attach File</label>
+        <input type="file" name="file[]" id="file" class="form-control" multiple required />
+    </div>
+
+    <!-- File preview list -->
+    <div id="file-preview-container" class="mb-3"></div>
+
+    <!-- Submit file button -->
+    <button type="button" id="submit_file" class="btn btn-primary">Send File</button>
+	<input type="hidden" name="chat_id" value="<%= data.chat_id %>" />
+</form>
 		<% } %>
     </div>
 </div>
+
+<style>
+    /* File Preview Styles */
+    #file-preview-container {
+        max-height: 200px; /* Limit the height to 200px */
+        overflow-y: auto;  /* Add vertical scroll when there are more than 4 files */
+        padding: 0;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .file-preview {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+
+    .file-name {
+        flex-grow: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .remove-file {
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .remove-file:hover {
+        text-decoration: underline;
+    }
+
+    /* File upload progress bar styles */
+    .progress-bar-container {
+        width: 100%;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0;
+        background-color: #007bff;
+        text-align: center;
+        color: white;
+        line-height: 20px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+    }
+</style>
 <style>
 img {
   width: 100%;
@@ -283,37 +355,75 @@ img {
 				let file = allSelectedFiles[x];
 				//console.log(file, file.size);
 				let chunk_file = await fileUpload(file);
-				files.push(chunk_file);
+				if(chunk_file) files.push(chunk_file);
 			}
 			//console.log(files);
-			registerFiles(files);
+			if(files && files.length > 0) registerFiles(files);
 			return;
 			//data.files = allSelectedFiles;
 			//data.user_id = user_id;
 			//data.chat_id = chat_id;
 			//await fileUpload(data);
 		})
-		async function fileUpload(file){
-			//console.log(file.name);
-			//console.log(file);
-			//return;
-			const file_name = `${Date.now()}-${file.name}`;
-			const chunkSize = 10*(1024 * 1024); // 10x1MB
-			  const totalChunks = Math.ceil(file.size / chunkSize);
-			  let startByte = 0;
-			  let first = true;
-			  let chunk_file = {};
-			  let chunk_resp = {};
-			  for (let i = 0; i < totalChunks; i++) {
-				const endByte = Math.min(startByte + chunkSize, file.size);
-				const chunk = file.slice(startByte, endByte);
-				chunk_resp = await uploadChunk(chunk, totalChunks, i, first, file_name, file.name);
-				first = false;
-				startByte = endByte;
-			  }
-			  chunk_file = chunk_resp.file;
-			  return chunk_file;
-		}
+async function fileUpload(file) {
+    const file_name = `${Date.now()}-${file.name}`;
+    const chunkSize = 10 * (1024 * 1024); // 10x1MB
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    let startByte = 0;
+    let first = true;
+    let chunk_file = {};
+    let chunk_resp = {};
+    let percent = 0;
+
+    // Find or create a progress bar for this file
+	console.log(`#file-${file.name}`);
+const safeFileName = file.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+console.log(safeFileName);
+    const filePreview = document.querySelector(`#file-${safeFileName}`);
+    
+    if (!filePreview) {
+        console.error(`File preview container with ID #file-${file.name} not found.`);
+        return;
+    }
+
+    // Create the progress bar container and progress bar if they don't exist
+    let progressBarContainer = filePreview.querySelector('.progress-bar-container');
+    if (!progressBarContainer) {
+        // Create a new progress bar container
+        progressBarContainer = document.createElement('div');
+        progressBarContainer.classList.add('progress-bar-container');
+
+        // Create a progress bar
+        const progressBar = document.createElement('div');
+        progressBar.classList.add('progress-bar');
+        progressBar.textContent = '0%';
+        progressBarContainer.appendChild(progressBar);
+        filePreview.appendChild(progressBarContainer);
+    }
+
+    // Get the actual progress bar for updates
+    const progressBar = progressBarContainer.querySelector('.progress-bar');
+
+    for (let i = 0; i < totalChunks; i++) {
+        const endByte = Math.min(startByte + chunkSize, file.size);
+        const chunk = file.slice(startByte, endByte);
+        chunk_resp = await uploadChunk(chunk, totalChunks, i, first, file_name, file.name);
+        first = false;
+        startByte = endByte;
+
+        // Calculate the percentage of the upload completed
+        percent = Math.round(((i + 1) / totalChunks) * 100);
+
+        // Update the progress bar's width and text
+        if (progressBar) {
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+        }
+    }
+
+    chunk_file = chunk_resp.file;
+    return chunk_file;
+}
 		async function uploadChunk(chunk, totalChunks, currentChunk, first=true, file_name="", original_file_name="") {
 		  const response = await fetch('/upload/chunk', {
 			method: 'POST',
@@ -355,9 +465,102 @@ img {
 				},
 				body: JSON.stringify({"files" :files})//form_data
 			});
+			const resp = await response
+files.forEach(file => {
+        // Sanitize the filename to ensure safe use in an ID
+        const safeFileName = file.originalname.replace(/[^a-zA-Z0-9-_]/g, '_');
+
+        // Find the file preview container by its safe ID
+        const filePreviewElement = document.querySelector(`#file-${safeFileName}`);
+
+        // If the file preview container exists, remove it from the DOM
+        if (filePreviewElement) {
+            filePreviewElement.remove();  // Remove the file preview container
+            console.log(`File preview removed for: ${safeFileName}`);
+        }
+
+        // Also remove the file from the input element's files array
+        removeFileFromInput(file);
+    });
+
+    // After registration, fetch new chat messages and update the UI
+    //socke
+		
 			socket.emit("getChatGroupMessages", { chat_id, user_id });
 			socket.on("messagesOfChatGroup", (data) => appendMessages(data));
 		}
-		
+	
+	const fileInput = document.getElementById('file');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+
+        // Handle file input change
+		fileInput.addEventListener('change', function () {
+            const files = fileInput.files;
+            filePreviewContainer.innerHTML = ''; // Clear previous preview
+
+            // Loop through selected files and create previews with a progress bar
+            Array.from(files).forEach(file => {
+                const filePreview = document.createElement('div');
+                filePreview.classList.add('file-preview');
+			const safeFileName = file.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+                filePreview.setAttribute('id', 'file-' + safeFileName);  // Unique ID for each file preview
+
+                const fileName = document.createElement('span');
+                fileName.classList.add('file-name');
+                fileName.textContent = file.name;
+
+                const removeButton = document.createElement('span');
+                removeButton.classList.add('remove-file');
+                removeButton.textContent = 'Remove';
+
+                // Remove the file from preview when clicked
+                removeButton.addEventListener('click', function () {
+                    const newFileList = Array.from(fileInput.files).filter(f => f !== file);
+                    fileInput.files = new FileListItems(newFileList);  // This will not work in standard JS, need custom FileList management
+                    filePreview.remove();
+                });
+
+                // Progress bar container
+                const progressBarContainer = document.createElement('div');
+                progressBarContainer.classList.add('progress-bar-container');
+                const progressBar = document.createElement('div');
+                progressBar.classList.add('progress-bar');
+                progressBarContainer.appendChild(progressBar);
+
+                // Append elements to the preview
+                filePreview.appendChild(fileName);
+                filePreview.appendChild(removeButton);
+                filePreview.appendChild(progressBarContainer);
+
+                filePreviewContainer.appendChild(filePreview);
+            });
+        });
+
     });
+function FileListItems(files) {
+        let b = new ClipboardEvent('').clipboardData || new DataTransfer();
+        files.forEach(f => b.items.add(f));
+        return b.files;
+    }
+
+function removeFileFromInput(fileToRemove) {
+    const input = document.querySelector("#file"); // Your file input element
+   input.value = "";
+	const fileList = Array.from(input.files); // Convert FileList to an array
+
+	//const safeFileName = file.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+	//console.log(fileList);
+    // Remove the file from the array by comparing filenames
+    const updatedFiles = fileList.filter(file => file.name.replace(/[^a-zA-Z0-9-_]/g, '_') !== fileToRemove.originalname);
+
+    // Create a new FileList and reset the input value
+    const dataTransfer = new DataTransfer();
+    updatedFiles.forEach(file => {
+        dataTransfer.items.add(file);  // Re-add the remaining files
+    });
+
+    // Reset the file input to the new FileList
+    input.files = dataTransfer.files;
+    console.log("Updated input files list:", input.files);
+}
 </script>
