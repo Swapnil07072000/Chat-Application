@@ -2,15 +2,17 @@ const cron = require("node-cron");
 const fs = require('fs');
 
 cronJob = async() => {
+	/*
 	cron.schedule("* 10 * * * *", function(){
-		console.log("CRON running every 10 mins");
-		deleteUploads();
+		//console.log("CRON running every 10 mins");
+		//deleteUploads();
 	},
 	{
 		scheduled: true,
 		timezone: "Asia/Kolkata"
 	}
 	);
+	*/
 }
 
 deleteUploads = async() =>{

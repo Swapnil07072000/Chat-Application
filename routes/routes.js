@@ -86,10 +86,11 @@ router.use("/user", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemid
 
 	router.post("/user/friendrequest", users.sendFriendRequest);
 	router.post("/user/friendrequestaction/:actionType", chats.actionOnRequest);
-
+	router.post("/user/chats/exitgroup/:chat_id", chats.exitGroup);
 
 router.use("/chat", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)]);
 	router.get("/chat/:chat_id/:msg_id/view/:file_id", chats.viewFile);
+	router.get("/chat/:chat_id/:msg_id/download/:file_id", chats.downloadFile);
 
 	router.post("/chat/create", chats.createGroup);
 
@@ -100,6 +101,7 @@ router.use("/upload",[veriftJWTToken.handle.bind(veriftJWTToken), authenticatemi
 	router.post("/upload/chunk", fileUpload.uploadChunk);
 	router.post("/upload/registerfiles", fileUpload.registerFiles);
 
-
+router.use("/video", [veriftJWTToken.handle.bind(veriftJWTToken), authenticatemiddleware.handle.bind(authenticatemiddleware)]);
+	router.get("/video/:file_id", fileUpload.streamVideo);
 
 module.exports = router;

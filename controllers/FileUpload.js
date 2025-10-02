@@ -81,7 +81,6 @@ class FileUpload{
 	 *
 	 */
 	uploadChunk = async(req, res) => {
-		const CHUNKS_DIR = "./uploads"; //"./chunks";
 		const file_name = req.headers["x-file-name"];
 		const total_chunks = parseInt(req.headers["x-total-chunks"]);
 		const current_chunk = parseInt(req.headers["x-current-chunk"]);	
@@ -91,7 +90,13 @@ class FileUpload{
 		 const user_id = req.session.user.id;
 	
         const file_upload = new fileUpload;
-
+	
+		const CHUNKS_DIR = path.resolve("./uploads/"+chat_id); //"./chunks";
+		//console.log(CHUNKS_DIR);
+		if(!fs.existsSync(CHUNKS_DIR)){
+		//	console.log("A");
+			fs.mkdirSync(CHUNKS_DIR, {recursive: true});
+		}
 		//console.log(file_name);
 		//console.log(total_chunks, current_chunk);
 		//console.log(first, file_name, totalChunks, currentChunk); 
@@ -216,6 +221,76 @@ try {
 		res.send("Files register curretly");
 	}
 
+	/**
+	 *	This function handles video streaming of large/small files
+	 *	@param object req
+	 *	@param object res
+	*/
+	streamVideo = async(req, res) => {
+		//console.log(req.params);
+		let response = {};
+		try{
+			const {file_id} = req.params;
+			const file_data = await fileUpload.findOne({where: {file_id: file_id}});
+			if(!file_data || file_data.id <= 0){
+				throw Error("Issue in getting file data.");
+			}
+			const file_url = path.resolve("./"+file_data.file_url);
+			if(!fs.existsSync(file_url)){
+				throw Error("File does not exists.");
+			}
+			const stat = fs.statSync(file_url);
+  			const fileSize = stat.size;
+  			const range = req.headers.range;
+			//console.log(file_data);
+			//console.log(file_url);
+			//console.log(range);
+			if (!range) {
+				res.writeHead(200, {
+			  		'Content-Length': fileSize,
+			  		'Content-Type': 'video/mp4',
+				});
+				fs.createReadStream(filePath).pipe(res);
+				return;
+		  	}
+			const parts = range.replace(/bytes=/, "").split("-");
+  			const start = parseInt(parts[0], 10);
+  			const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+  			if (start >= fileSize || end >= fileSize) {
+    			return res.status(416).send('Requested range not satisfiable');
+  			}
+			//console.log(start, end, fileSize);
+  			const chunkSize = end - start + 1;
+  			const file = fs.createReadStream(file_url, { start, end });
+
+			res.writeHead(206, {
+    			'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+    			'Accept-Ranges': 'bytes',
+    			'Content-Length': chunkSize,
+    			'Content-Type': 'video/mp4',
+  			});
+
+  			file.pipe(res);
+
+			response.status = true;
+			response.http_code = 200;
+		}catch(error){
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
+		}
+		//console.log(response);
+
+	}
+
+	downloadFile = async(file_url, range) => {
+		try{
+			//console.log(file_url);
+		}catch(error){
+			//
+		}
+	}
 
     /**
      * Get all the commited files

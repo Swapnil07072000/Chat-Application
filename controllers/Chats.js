@@ -4,6 +4,7 @@ const chatsgroupusers = require('../models/ChatsGroupUsers');
 const userrequests = require("../models/UserRequests");
 const userscircle = require("../models/UsersCircle");
 const userschatsmessages = require('../models/UsersChatsMessages');
+const fileController = require("../controllers/FileUpload");
 const fileUpload = require("../models/FileUpload");
 const users = require("../models/Users");
 // const bcrypt = require("bcryptjs");
@@ -434,6 +435,7 @@ class Chats{
 			response.status = true;
 			response.http_code = 200;
 			response.file_path = filePath;
+			response.file_record = file_record;
 		}catch(error){
 			response.status = false;
 			response.http_code = error.code;
@@ -463,12 +465,104 @@ class Chats{
 		//	console.log(view_resp);
 			response.file_path = view_resp.file_path;
 			filePath = view_resp.file_path;
+			//console.log(filePath,"A");
 		}catch(error){
 			response.status = false;
 			response.http_code = error.code;
 			response.message = error.message;
 		}
-		return res.render("layouts/index",{partial:"../viewFile", data: filePath} );
+		return res.render("layouts/index",{partial:"../viewFile", data: filePath, file_id: req.params.file_id} );
+	}
+
+	/**
+	 *	This function handles the download of file
+	 *	@param object request
+	 *	@param object res
+	 *
+	 *
+	*/ 
+	downloadFile = async(req, res) => {
+		let response = {};
+		let filePath = "";
+		try{
+			const { chat_id, msg_id, file_id } = req.params;
+			let logged_in_user = req.session.user;
+			const view_resp = await this.#getViewFilePath(chat_id, msg_id, file_id, logged_in_user.id);	
+			response.file_path = view_resp.file_path;
+			filePath = view_resp.file_path;
+  			const range = req.headers.range;
+			//console.log(filePath);
+			//console.log(range);
+			filePath = path.resolve("./"+filePath);
+			//const fileC = new fileController();
+		    //return fileController.downloadFile(filePath, range);
+			const file_url = filePath;
+			const file_record = view_resp.file_record;
+			if(!fs.existsSync(file_url)){
+				throw Error("File does not exists.");
+			}
+			const stat = fs.statSync(file_url);
+  			const fileSize = stat.size;
+  			//const range = req.headers.range;
+			//console.log(file_data);
+			//console.log(file_url);
+			//console.log(range);
+			//console.log(stat);
+			if (!range) {
+				res.writeHead(200, {
+      				'Content-Length': fileSize,
+      				'Content-Type': 'application/octet-stream',
+      				'Content-Disposition': `attachment; filename="${file_record.file_name}"`
+    			});
+    			fs.createReadStream(filePath).pipe(res);
+    			return;
+		  	}
+			const parts = range.replace(/bytes=/, "").split("-");
+  			const start = parseInt(parts[0], 10);
+  			const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+  			if (start >= fileSize || end >= fileSize) {
+    			return res.status(416).send('Requested range not satisfiable');
+  			}
+			//console.log(start, end, fileSize);
+  			const chunkSize = end - start + 1;
+  			const file = fs.createReadStream(file_url, { start, end });
+
+			res.writeHead(206, {
+    			'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+    			'Accept-Ranges': 'bytes',
+    			'Content-Length': chunkSize,
+    			'Content-Type': 'application/octet-stream',
+    			'Content-Disposition': `attachment; filename="${file_record.file_name}"`
+  			});
+
+  			file.pipe(res);
+		}catch(error){
+			response.status = false;
+			response.http_code = error.code;
+			response.message = error.message;
+		}
+		//return res.render("layouts/index",{partial:"../viewFile", data: filePath, file_id: req.params.file_id} );
+	}
+
+	exitGroup = async(req, res) => {
+		try{
+			const {chat_id} = req.params;
+			const logged_in_user = req.session.user;
+
+			const chat_group_record = await chatsgroupusers.findOne({where: {chat_id: chat_id, user_id: logged_in_user.id, active: '1'}});
+			
+			if(!chat_group_record || chat_group_record.length <= 0){
+				throw Error("User is not present or already inactive in the group");
+			}
+			const [row_affected, updated_record] = await chatsgroupusers.update({active: '0', updated_at: new Date()},{where: {chat_id: chat_id, user_id: logged_in_user.id, active: '1'}, returning: true});
+			req.flash("You have exited from the group successfully");
+			res.redirect("/user/chats");
+		}catch(error){
+			console.log(error.message);
+			req.flash("Something went wrong. Please try again later!");
+		}
+		return;
 	}
 
 }

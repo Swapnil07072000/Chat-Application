@@ -6,7 +6,10 @@
     <div class="sidebar">
         <a href="/user/chats" class="btn btn-primary">Back</a>
         <% if(data.is_group == 1){ %>
-            <h6>Group Info:</h6>
+        	<form id="exit_group_form" action="/user/chats/exitgroup/<%= data.chat_id %>" method="POST"  class="form">
+				<input type="submit" data-chat_id="<%= data.chat_id %>" class="btn btn-danger btn-sm" id="exit_group" value="Exit group" />
+			</form>
+		   <h6>Group Info:</h6>
             <p id="group-description"><%= data.group_description %></p>
             <h6>Chat Members:</h6>
             <ul id="user-list" class="list-group">
@@ -563,4 +566,15 @@ function removeFileFromInput(fileToRemove) {
     input.files = dataTransfer.files;
     console.log("Updated input files list:", input.files);
 }
+	jQuery("#exit_group_form").on("submit", (e)=>{
+		//e.preventDefault();
+		let cnf = confirm("Do you want to exit the group?");
+		if(!cnf){
+			return;
+		}
+		//jQuery("#exit_group_form").submit();
+		console.log(cnf);
+	
+	});
+
 </script>

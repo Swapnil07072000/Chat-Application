@@ -41,10 +41,14 @@ class Helper{
                 let file = fileInfo[key];
                 const name = file.file_name;
 				const url = "http://"+hostname+":"+port+"/chat/"+file.chat_id+"/"+file.msg_id+"/view/"+file.file_id;
-                const tmp_url = new URL(url);
+               
+				const download_url = "http://"+hostname+":"+port+"/chat/"+file.chat_id+"/"+file.msg_id+"/download/"+file.file_id;
+				const tmp_url = new URL(url);
+				const download_tmp_url = new URL(download_url);
                 const secure_url = tmp_url.href
                 fileInfo[key].secure_url = secure_url;
                 fileInfo[key].image_url = tmp_url.href;
+				fileInfo[key].download_url = download_tmp_url.href;
             }
         }
 		//console.log(fileInfo);

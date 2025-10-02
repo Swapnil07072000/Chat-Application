@@ -292,6 +292,7 @@ class Users{
 			if((!user || user.id <= 0) || (!from_user || from_user <= 0)){
 				throw new Error("Something went wrong", 404);
 			} 
+			
             const userReq = new userrequests();
             const userCircle = new usersCircle();
 			let to_user = user.id;
@@ -314,6 +315,7 @@ class Users{
 			if(user_circle_result && user_circle_result.length > 0){
 				is_already_present = true;
 			}	
+
             let result = "";
             if(is_already_friend && (from_user != to_user)){
                 result = await usersCircle.findOne(
@@ -329,6 +331,7 @@ class Users{
                     }
                 );
             }
+
 			response.status = true;
 			response.http_code = 200;
 			response.curruser = from_user_obj;
@@ -336,12 +339,18 @@ class Users{
 			response.is_prev_request_present = is_prev_friend_request_present;
 			response.is_already_friend = is_already_friend;
 			response.is_my_request = is_my_request;
+			
 			response.user_circle_record = result; 
-        }catch(error){
+       		response.is_self = (user.id == from_user_obj.id);	
+			//console.log("A");
+			//console.log(response);
+			//return;
+		}catch(error){
 			response.status = false;
 			response.http_code = error.code;
 			response.message = error.message;
         }
+		//console.log(response);
 		if(response.status == false){
             req.flash("error", response.message);
 			res.redirect("/user/chats");

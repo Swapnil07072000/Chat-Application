@@ -130,18 +130,73 @@ class UsersChatsMessages extends Model {
         }
 		*/
 		  //console.log(chatMap.length);
-       	if(chatMap && Object.keys(chatMap).length > 0 && chatMap[ind_record.chat_id][ind_record.message_id]){
-			let each_file_record = chatMap[ind_record.chat_id][ind_record.message_id];
-			if(each_file_record){
-				let file_msg_list = [];
-			    for(const [key,each_file_record_value] of Object.entries(each_file_record)){
-					//console.log(value);
-					file_msg_list.push( "<a href='"+each_file_record_value.image_url+"' target='_blank' >"+each_file_record_value.file_name+"</a>");
-				}
-				ind_record.is_href = true;
-				ind_record.message = file_msg_list.join("</br>");//"<a href='"+each_file_record_value.image_url+"' target='_blank' >"+each_file_record_value.file_name+"</a>";
+if (chatMap && Object.keys(chatMap).length > 0 && chatMap[ind_record.chat_id][ind_record.message_id]) {
+	const each_file_record = chatMap[ind_record.chat_id][ind_record.message_id];
+	if (each_file_record) {
+		let file_msg_list = [];
+
+		for (const [key, file] of Object.entries(each_file_record)) {
+			const fileName = file.file_name;
+			const fileUrl = file.image_url;
+			const download_url = file.download_url;
+			const fileExt = fileName.split('.').pop().toLowerCase();
+
+			let fileIcon = 'bi-file-earmark'; // Default icon
+			let filePreviewHTML = '';
+
+			if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+				// Image preview
+				filePreviewHTML = `
+					<img src="${fileUrl}" alt="${fileName}" class="img-thumbnail rounded" style="max-width: 200px; max-height: 200px;">
+				`;
+			} else if (['mp4', 'webm', 'ogg'].includes(fileExt)) {
+				// Video preview
+				filePreviewHTML = `
+					<video controls style="max-width: 250px;" class="rounded">
+						<source src="${fileUrl}" type="video/${fileExt}">
+						Your browser does not support the video tag.
+					</video>
+				`;
+			} else if (fileExt === 'pdf') {
+				fileIcon = 'bi-file-earmark-pdf text-danger';
+			} else if (['doc', 'docx'].includes(fileExt)) {
+				fileIcon = 'bi-file-earmark-word text-primary';
+			} else if (['xls', 'xlsx'].includes(fileExt)) {
+				fileIcon = 'bi-file-earmark-excel text-success';
+			} else if (['zip', 'rar'].includes(fileExt)) {
+				fileIcon = 'bi-file-earmark-zip';
 			}
-		} 
+
+			// Wrapper card
+			file_msg_list.push(`
+				<div class="file-preview border rounded p-2 mb-3 bg-light">
+					<div class="d-flex flex-column gap-2 align-items-start">
+						${filePreviewHTML || `
+<div class="d-flex align-items-center gap-2" style="max-width: 100%;">
+	<i class="bi ${fileIcon} fs-4 flex-shrink-0"></i>
+
+<span class="d-inline-block break-word" style="max-width: 100%;" title="${fileName}">
+		${fileName}
+	</span>
+</div>
+						`}
+						<div class="d-flex gap-3">
+							<a href="${fileUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+								<i class="bi bi-eye"></i> View
+							</a>
+							<a href="${download_url}" download class="btn btn-sm btn-outline-success">
+								<i class="bi bi-download"></i> Download
+							</a>
+						</div>
+					</div>
+				</div>
+			`);
+		}
+
+		ind_record.is_href = true;
+		ind_record.message = file_msg_list.join("");
+	}
+}
         processed_chat_records.push(ind_record);
       }
     }

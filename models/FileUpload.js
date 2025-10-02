@@ -28,7 +28,7 @@ class FileUpload extends Model{
 			const fileName = path.parse(file_basename).name;
             const uniqueFileName = path.parse(file.filename).name;
             const file_type = path.parse(file_basename).ext;
-            const filePath = "/uploads/"+uniqueFileName+file_type;
+            const filePath = "/uploads/"+(chat_id?(chat_id+"/"):"")+uniqueFileName+file_type;
 			const fileID = uuidv4();
             const data = {
                 file_id: fileID,
